@@ -180,7 +180,7 @@ python -m ddr.render --out data/samples
 │   ├── evaluation_report.md
 │   └── robustness_report.md
 ├── docs/格式适配指南.md
-└── tests/              # 210 项单元与端到端测试
+└── tests/              # 231 项单元、端到端与错误路径测试
 ```
 
 ## 常用命令一览
@@ -235,7 +235,7 @@ python -m ddr.render --out data/samples
 | M1：3 种格式 + 20 份日报评测集 + 分字段准确率报告 | ✅ 21 份样本 / 444 项字段断言 |
 | 封闭评测集字段准确率 | 100%（表头、时间分解、NPT、泥浆、钻头、ILT 六组全部 100%） |
 | 畸形日报行为契约 | 7 个用例 / 26 条断言全部通过 |
-| 自动化测试 | 198 项通过 |
+| 自动化测试 | 231 项通过（含 19 项错误路径契约） |
 | 数据集自检 | 21 份日报的 ground truth 与日报内容零不一致 |
 
 复现命令与报告：`data/samples/evaluation_report.md`、`data/samples/robustness_report.md`。

@@ -101,51 +101,76 @@ def read_pdf(path: str | Path) -> Document:
         raise ReaderError("缺少 pdfplumber：pip install pdfplumber") from exc
 
     no_text_pages: list[int] = []
-    with pdfplumber.open(str(path)) as pdf:
-        for i, page in enumerate(pdf.pages, 1):
-            text = page.extract_text(layout=False) or ""
-            text_layout = page.extract_text(layout=True) or text
-            lines = [normalize_line(ln) for ln in text_layout.splitlines()]
-            lines = [ln for ln in lines if ln]
+    try:
+        with pdfplumber.open(str(path)) as pdf:
+            for i, page in enumerate(pdf.pages, 1):
+                text = page.extract_text(layout=False) or ""
+                text_layout = page.extract_text(layout=True) or text
+                lines = [normalize_line(ln) for ln in text_layout.splitlines()]
+                lines = [ln for ln in lines if ln]
 
-            # 无框线表格也用 lines 兜底；有框线的尝试结构抽取
-            tables: list[Table] = []
-            try:
-                for t in page.find_tables():
-                    data = t.extract()
-                    if data and len(data) >= 2:
-                        cells = [[(c if c is None else str(c)) for c in row] for row in data]
-                        tables.append(
-                            Table(cells=cells, page=i, bbox=(t.bbox[0], t.bbox[1], t.bbox[2], t.bbox[3]))
-                        )
-            except Exception as exc:  # 表格识别失败不应阻断整份文档
-                doc.warnings.append(f"第 {i} 页表格结构抽取失败，已退化为文本行解析：{exc}")
+                # 无框线表格也用 lines 兜底；有框线的尝试结构抽取
+                tables: list[Table] = []
+                try:
+                    for t in page.find_tables():
+                        data = t.extract()
+                        if data and len(data) >= 2:
+                            cells = [[(c if c is None else str(c)) for c in row] for row in data]
+                            tables.append(
+                                Table(cells=cells, page=i, bbox=(t.bbox[0], t.bbox[1], t.bbox[2], t.bbox[3]))
+                            )
+                except Exception as exc:  # 表格识别失败不应阻断整份文档
+                    doc.warnings.append(f"第 {i} 页表格结构抽取失败，已退化为文本行解析：{exc}")
 
-            has_text = bool(text.strip())
-            if not has_text:
-                no_text_pages.append(i)
+                has_text = bool(text.strip())
+                if not has_text:
+                    no_text_pages.append(i)
 
-            doc.pages.append(
-                Page(
-                    number=i,
-                    text=text,
-                    lines=lines,
-                    tables=tables,
-                    width=float(page.width),
-                    height=float(page.height),
-                    has_text_layer=has_text,
+                doc.pages.append(
+                    Page(
+                        number=i,
+                        text=text,
+                        lines=lines,
+                        tables=tables,
+                        width=float(page.width),
+                        height=float(page.height),
+                        has_text_layer=has_text,
+                    )
                 )
-            )
+    except ReaderError:
+        raise
+    except Exception as exc:
+        # 文件损坏/加密/被截断时底层库会抛各种异常，统一转成可操作的中文提示，
+        # 而不是把库的原始崩溃栈丢给用户（真实踩过的坑）。
+        raise ReaderError(
+            f"{path.name}: PDF 无法打开或已损坏（{type(exc).__name__}: {exc}）。"
+            "请确认文件完整性，或先用 PDF 阅读器重新另存后再试。"
+        ) from exc
 
+    if not doc.pages:
+        raise ReaderError(f"{path.name}: PDF 中没有任何页面")
     if no_text_pages and len(no_text_pages) == len(doc.pages):
+        total_chars = sum(len(p.text.strip()) for p in doc.pages)
+        has_images = False
+        try:
+            import pymupdf  # type: ignore
+
+            with pymupdf.open(str(path)) as _d:
+                has_images = any(page.get_images() for page in _d)
+        except Exception:
+            has_images = False  # 判断不了就不影响主流程
+
+        if total_chars == 0 and not has_images:
+            raise ReaderError(
+                f"{path.name}: PDF 里没有可提取的文字，也没有图片内容，判断为空文档。"
+                "请确认导出/打印时没有丢内容。"
+            )
         raise ReaderError(
             f"{path.name}: 全部 {len(doc.pages)} 页均无文本层，判断为扫描件/纯图片日报。"
             "本引擎 M1 阶段不内置 OCR，请先用 OCR 转为带文本层的 PDF，或提供电子版原件。"
         )
     if no_text_pages:
         doc.warnings.append(f"第 {no_text_pages} 页无文本层（扫描页），这些页的字段将缺失")
-    if not doc.warnings:
-        doc.warnings = []
     return doc
 
 

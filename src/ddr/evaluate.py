@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import re
 import unicodedata
 from dataclasses import dataclass, field
@@ -54,6 +55,11 @@ class SampleResult:
 @dataclass
 class Report:
     samples: list[SampleResult] = field(default_factory=list)
+    missing: list[str] = field(default_factory=list)
+
+    @property
+    def empty(self) -> bool:
+        return not self.samples
 
     def group_stats(self) -> dict[str, dict[str, Any]]:
         stats: dict[str, dict[str, Any]] = {}
@@ -396,6 +402,23 @@ def evaluate_sample(
     return res
 
 
+def load_manifest(data_dir: str | Path) -> dict[str, Any]:
+    """读取评测集 manifest，失败时给可操作提示而不是崩溃栈。"""
+    p = Path(data_dir) / "manifest.json"
+    if not p.exists():
+        raise FileNotFoundError(
+            f"没找到 {p}。评测需要一个含 manifest.json 的数据集目录，"
+            "例如 data/samples（可用 `python -m ddr.render --out data/samples` 生成）。"
+        )
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{p} 不是合法 JSON（第 {exc.lineno} 行：{exc.msg}）") from exc
+    if not isinstance(data, dict) or "items" not in data:
+        raise ValueError(f"{p} 结构不符合预期：顶层应为对象且含 'items' 键")
+    return data
+
+
 def evaluate_dataset(data_dir: str | Path) -> Report:
     """按井分组、按日期排序后评测。
 
@@ -405,7 +428,7 @@ def evaluate_dataset(data_dir: str | Path) -> Report:
     from .pipeline import parse_files
 
     data_dir = Path(data_dir)
-    manifest = json.loads((data_dir / "manifest.json").read_text(encoding="utf-8"))
+    manifest = load_manifest(data_dir)
     items = manifest["items"]
 
     by_well: dict[str, list[dict]] = {}
@@ -415,18 +438,38 @@ def evaluate_dataset(data_dir: str | Path) -> Report:
     rep = Report()
     for well_name, group in by_well.items():
         group_sorted = sorted(group, key=lambda it: it.get("report_date") or "")
-        paths = [data_dir / it["file"] for it in group_sorted]
+        # manifest 里登记了但磁盘上不存在的样本：跳过并记录，不让评测整体崩掉
+        present = [
+            it
+            for it in group_sorted
+            if (data_dir / it.get("file", "")).exists() and (data_dir / it.get("truth", "")).exists()
+        ]
+        for it in group_sorted:
+            if it not in present:
+                rep.missing.append(f"{it.get('file')}（或对应 ground truth）文件不存在")
+        if not present:
+            continue
+        paths = [data_dir / it["file"] for it in present]
         try:
             parsed_list = parse_files(paths)
-        except Exception:
-            parsed_list = [None] * len(group_sorted)  # type: ignore[list-item]
-        for it, parsed in zip(group_sorted, parsed_list):
+        except Exception as exc:
+            for it in present:
+                rep.samples.append(
+                    SampleResult(
+                        file=it.get("file", "?"),
+                        template_expected=it.get("template_id", ""),
+                        template_actual="",
+                        error=f"解析抛出异常：{type(exc).__name__}: {exc}",
+                    )
+                )
+            continue
+        for it, parsed in zip(present, parsed_list):
             rep.samples.append(
                 evaluate_sample(
                     data_dir / it["file"],
                     data_dir / it["truth"],
                     template_id=it.get("template_id"),
-                    parsed=parsed,  # type: ignore[arg-type]
+                    parsed=parsed,
                 )
             )
     return rep
@@ -436,13 +479,36 @@ def evaluate_dataset(data_dir: str | Path) -> Report:
 def render_markdown(rep: Report, *, title: str = "解析引擎准确率报告") -> str:
     stats = rep.group_stats()
     overall = rep.overall()
+
+    # 空数据集要产出可读报告而不是崩溃：这是程序化调用的入口，
+    # 不能假定调用方已经做过空检查（真实踩过的坑）。
+    if rep.empty:
+        return "\n".join(
+            [
+                f"# {title}",
+                "",
+                "**没有可评测的样本。**",
+                "",
+                f"- manifest 中被跳过的登记项：{len(rep.missing)} 条",
+                *[f"  - `{m}`" for m in rep.missing[:20]],
+                "",
+                "请检查 `manifest.json` 的 `items` 是否为空，以及其中登记的 "
+                "`file` / `truth` 是否都存在于数据集目录下。",
+                "",
+            ]
+        )
+
+    acc_txt = "—" if overall["accuracy"] is None else f"{overall['accuracy']:.2%}"
     lines: list[str] = [f"# {title}", ""]
     lines.append(
         f"评测样本：**{len(rep.samples)} 份**；参与评分的字段断言：**{overall['total']} 项**；"
-        f"总体准确率：**{overall['accuracy']:.2%}**"
+        f"总体准确率：**{acc_txt}**"
     )
     lines.append("")
     lines.append("> 样本为计算机合成数据（按 IADC 日报标准构造），不代表真实井数据。")
+    if rep.missing:
+        lines.append(">")
+        lines.append(f"> ⚠ manifest 中有 {len(rep.missing)} 条登记项的样本文件缺失，已跳过。")
     lines.append("")
 
     lines.append("## 一、分字段组准确率")
@@ -521,12 +587,26 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", default="data/samples/evaluation_report.md")
     args = ap.parse_args(argv)
 
-    rep = evaluate_dataset(args.data)
+    try:
+        rep = evaluate_dataset(args.data)
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"错误：{exc}", file=sys.stderr)
+        return 2
+    if rep.empty:
+        print(
+            f"错误：{args.data} 的 manifest 里没有可评测的样本"
+            + (f"（{len(rep.missing)} 条登记项的样本文件不存在）" if rep.missing else ""),
+            file=sys.stderr,
+        )
+        return 2
     md = render_markdown(rep)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(md, encoding="utf-8")
     overall = rep.overall()
+    if overall["accuracy"] is None:
+        print("错误：没有任何样本参与评分（manifest 为空或所有样本文件缺失）", file=sys.stderr)
+        return 2
     print(f"总体准确率 {overall['accuracy']:.2%}（{overall['ok']}/{overall['total']} 项断言）")
     for g, s in sorted(rep.group_stats().items(), key=lambda kv: (kv[1]["accuracy"] or 0)):
         acc = "—" if s["accuracy"] is None else f"{s['accuracy']:.2%}"

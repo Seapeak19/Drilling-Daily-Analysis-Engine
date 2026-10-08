@@ -54,6 +54,34 @@ def _approx(a: float | None, b: float | None, tol: float = 0.011) -> bool:
     return abs(float(a) - float(b)) <= tol
 
 
+class DatasetError(RuntimeError):
+    """数据集文件不可用（缺失/损坏/结构不对）。"""
+
+
+def load_dataset(path: str | Path) -> dict[str, Any]:
+    """读取数据集 JSON，失败时给出可操作的中文提示而不是 JSONDecodeError 崩溃栈。"""
+    p = Path(path)
+    if not p.exists():
+        raise DatasetError(
+            f"数据集文件不存在：{p}。可用 `python -m ddr.render --out data/samples` 生成合成数据集。"
+        )
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise DatasetError(
+            f"{p} 不是合法 JSON（第 {exc.lineno} 行第 {exc.colno} 列：{exc.msg}）。"
+            "若文件是手工编辑过的 ground truth，请先修复语法错误。"
+        ) from exc
+    except OSError as exc:
+        raise DatasetError(f"{p} 读取失败：{exc}") from exc
+    if not isinstance(data, dict) or "samples" not in data:
+        raise DatasetError(
+            f"{p} 结构不符合预期：顶层应为对象且含 'samples' 键"
+            f"（实际顶层类型 {type(data).__name__}，键 {list(data)[:6] if isinstance(data, dict) else '—'}）。"
+        )
+    return data
+
+
 def check_dataset(dataset: dict[str, Any]) -> CheckResult:
     res = CheckResult()
     last_md: dict[str, float] = {}
@@ -165,7 +193,7 @@ def check_dataset(dataset: dict[str, Any]) -> CheckResult:
 
 
 def check_dataset_file(path: str | Path) -> CheckResult:
-    return check_dataset(json.loads(Path(path).read_text(encoding="utf-8")))
+    return check_dataset(load_dataset(path))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -174,7 +202,11 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="检查合成数据集 ground truth 与日报内容是否一致")
     ap.add_argument("--data", default="data/samples/dataset.json")
     args = ap.parse_args(argv)
-    res = check_dataset_file(args.data)
+    try:
+        res = check_dataset_file(args.data)
+    except DatasetError as exc:
+        print(f"错误：{exc}")
+        return 2
     print(
         f"已检查 {res.checked_wells} 口井 / {res.checked_days} 份日报，"
         f"问题 {len(res.problems)} 处"

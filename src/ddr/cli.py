@@ -162,9 +162,13 @@ def cmd_chart(args) -> int:
 
 
 def cmd_check(args) -> int:
-    from .datacheck import check_dataset_file
+    from .datacheck import DatasetError, check_dataset_file
 
-    res = check_dataset_file(args.data)
+    try:
+        res = check_dataset_file(args.data)
+    except DatasetError as exc:
+        print(f"错误：{exc}", file=sys.stderr)
+        return 2
     print(f"已检查 {res.checked_wells} 口井 / {res.checked_days} 份日报，问题 {len(res.problems)} 处")
     for p in res.problems[:40]:
         print("  ✗", p)
@@ -174,7 +178,21 @@ def cmd_check(args) -> int:
 def cmd_eval(args) -> int:
     from .evaluate import evaluate_dataset, render_markdown
 
-    rep = evaluate_dataset(args.data)
+    try:
+        rep = evaluate_dataset(args.data)
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"错误：{exc}", file=sys.stderr)
+        return 2
+
+    # 没有可评测样本：报错退出，而不是产出一份"准确率 —"的报告让人误以为跑通了
+    if rep.empty:
+        print(
+            f"错误：{args.data} 没有可评测的样本。"
+            + (f"manifest 中 {len(rep.missing)} 条登记项的样本文件缺失。" if rep.missing else "items 为空。"),
+            file=sys.stderr,
+        )
+        return 2
+
     md = render_markdown(rep)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -184,6 +202,11 @@ def cmd_eval(args) -> int:
     for g, s in sorted(rep.group_stats().items(), key=lambda kv: (kv[1]["accuracy"] or 0)):
         acc = "—" if s["accuracy"] is None else f"{s['accuracy']:.2%}"
         print(f"  {g:<12} {acc:>8}  ({s['ok']}/{s['total']})")
+    for s in rep.samples:
+        if s.error:
+            print(f"  ⚠ {s.file}: {s.error}", file=sys.stderr)
+    if rep.missing:
+        print(f"  ⚠ 跳过 {len(rep.missing)} 条登记项（样本文件缺失）", file=sys.stderr)
     print(f"报告已写入 {out}")
     return 0
 
@@ -215,8 +238,11 @@ def cmd_stats(args) -> int:
 
     try:
         st = compute_stats(args.data)
-    except FileNotFoundError as exc:
+    except (FileNotFoundError, ValueError) as exc:
         print(f"错误：{exc}", file=sys.stderr)
+        return 2
+    if st.sample_count == 0:
+        print(f"错误：{args.data} 的 manifest 里没有样本（items 为空）", file=sys.stderr)
         return 2
     if args.json:
         print(json.dumps(st.to_dict(), ensure_ascii=False, indent=2))
@@ -263,6 +289,11 @@ def build_parser():
     p.add_argument("--chart", help="同时生成时效分解图 HTML")
     p.add_argument("--summary", action="store_true", help="打印时效小结")
     p.add_argument("--template", help="强制指定模板 ID（跳过模板识别）")
+    p.add_argument(
+        "--no-json",
+        action="store_true",
+        help="不打印标准化 JSON（只要结论/图/表时用，避免刷屏）",
+    )
     p.add_argument("--no-validate", action="store_true", help="跳过 JSON Schema 校验")
     p.add_argument("--strict", action="store_true", help="Schema 校验失败时返回非零退出码")
     p.add_argument("--quiet", action="store_true", help="不打印解析提示")

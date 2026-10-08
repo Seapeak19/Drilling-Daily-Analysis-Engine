@@ -71,12 +71,34 @@ def _txt(s: Any) -> str:
     return str(s if s is not None else "")
 
 
+class FontUnavailableError(RuntimeError):
+    """系统中找不到可用的中文字体，无法渲染中文日报样本。"""
+
+
+def _ensure_cjk_font() -> None:
+    """渲染中文样本前必须确认中文字体可用。
+
+    找不到字体时 reportlab 会静默退回 Helvetica，产出的是**满屏方块的 PDF**：
+    样本看起来生成了，实则不可用，还会污染评测集。因此这里显式失败。
+    （fonts.has_cjk_font 的注释早就写明"调用方应警告"，但此前没有任何地方调用它。）
+    """
+    from .fonts import has_cjk_font
+
+    if not has_cjk_font():
+        raise FontUnavailableError(
+            "系统中找不到可用的中文字体（已尝试 simhei / NotoSansSC / Deng / msyh / simsun 等）。"
+            "渲染中文日报样本至少需要一种。Linux 上可执行："
+            "apt-get install fonts-noto-cjk fonts-wqy-zenhei"
+        )
+
+
 # --------------------------------------------------------------------- PDF 基座
 def _build_pdf(path: Path, flowables: list[Any], *, landscape: bool, title: str, margins: float = 0.55) -> None:
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.pagesizes import landscape as ls
     from reportlab.platypus import SimpleDocTemplate
 
+    _ensure_cjk_font()
     path.parent.mkdir(parents=True, exist_ok=True)
     pagesize = ls(A4) if landscape else A4
     doc = SimpleDocTemplate(

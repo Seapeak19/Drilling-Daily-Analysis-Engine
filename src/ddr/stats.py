@@ -102,20 +102,30 @@ class DatasetStats:
         }
 
 
-def compute_stats(data_dir: str | Path) -> DatasetStats:
-    """读取 manifest.json 与各样本的解析结果，统计数据集特征。
-
-    优先读 `out/parsed/` 之类的解析产物；没有就读 ground truth（评测标尺）。
-    两条路都不通则直接现场解析一次（慢但一定能出结果）。
-    """
-    data_dir = Path(data_dir)
-    manifest_path = data_dir / "manifest.json"
-    if not manifest_path.exists():
+def load_manifest(data_dir: str | Path) -> dict[str, Any]:
+    """读取数据集的 manifest，失败时给出可操作提示而不是崩溃栈。"""
+    p = Path(data_dir) / "manifest.json"
+    if not p.exists():
         raise FileNotFoundError(
-            f"没找到 {manifest_path}。该命令需要一个含 manifest.json 的数据集目录，"
+            f"没找到 {p}。该命令需要一个含 manifest.json 的数据集目录，"
             "例如 data/samples（可用 `python -m ddr.render --out data/samples` 生成）。"
         )
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{p} 不是合法 JSON（第 {exc.lineno} 行：{exc.msg}）") from exc
+    if not isinstance(data, dict) or "items" not in data:
+        raise ValueError(f"{p} 结构不符合预期：顶层应为对象且含 'items' 键")
+    return data
+
+
+def compute_stats(data_dir: str | Path) -> DatasetStats:
+    """读取 manifest.json 与各样本的 ground truth，统计数据集特征。
+
+    以 ground truth 为统计口径（它是评测标尺，也是唯一能保证"与日报内容一致"的一侧）。
+    """
+    data_dir = Path(data_dir)
+    manifest = load_manifest(data_dir)
     items = manifest.get("items", [])
     st = DatasetStats(data_dir=data_dir, sample_count=len(items))
 
@@ -133,7 +143,7 @@ def compute_stats(data_dir: str | Path) -> DatasetStats:
 
         truth = _load_truth(data_dir / it["truth"])
         if truth is None:
-            st.warnings.append(f"{it.get('file')}: ground truth 读取失败，统计中跳过")
+            st.warnings.append(f"{it.get('file')}: ground truth 读取失败或不存在，统计中跳过")
             continue
 
         st.phases[truth.get("phase") or "unknown"] += 1
