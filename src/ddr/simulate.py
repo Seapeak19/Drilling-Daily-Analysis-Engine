@@ -332,7 +332,7 @@ def _build_day_blocks(
 
     # 注入 NPT
     npt_events: list[dict[str, Any]] = []
-    base_rate = well.get("npt_probability", 0.35)
+    base_rate = well.get("npt_probability", 0.45)
     for pool, prob in (
         (EQUIPMENT_NPT, base_rate),
         (WELLBORE_NPT, base_rate * 0.5),
@@ -415,7 +415,7 @@ def simulate_well(
     seed: int = 20261008,
     days: int = 7,
     start_date: date | None = None,
-    npt_probability: float = 0.35,
+    npt_probability: float = 0.45,
 ) -> SimWell:
     rng = random.Random(seed)
     well = {**well_info, "npt_probability": npt_probability}
@@ -611,6 +611,13 @@ def simulate_well(
                 "funnel_viscosity_s": mud[0]["funnel_viscosity_s"],
                 "fl_ml": mud[0]["fl_ml"],
             },
+            # 以下字段写在日报里，答案也必须带上：
+            # 答案不完整会让"字段可用率"统计失真（曾把 21/21 有值的字段报成 0/21）。
+            "hole_diameter_in": payload["report"]["hole_diameter_in"],
+            "etim_spud_days": payload["report"]["etim_spud_days"],
+            "well_status": payload["report"]["well_status"],
+            "dtim_spud": payload["report"]["dtim_spud"],
+            "remarks": payload["remarks"],
             "phase": phase,
             "template_id": template_for_phase(phase),
             "unit_system": well.get("unit_system", "metric"),
@@ -674,7 +681,7 @@ def build_dataset(
     wells: int = 3,
     days_per_well: int = 7,
     seed: int = 20261008,
-    npt_probability: float = 0.35,
+    npt_probability: float = 0.45,
 ) -> dict[str, Any]:
     rng = random.Random(seed)
     dataset: dict[str, Any] = {
@@ -715,7 +722,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--wells", type=int, default=3)
     ap.add_argument("--days", type=int, default=7)
     ap.add_argument("--seed", type=int, default=20261008)
-    ap.add_argument("--npt-probability", type=float, default=0.35)
+    ap.add_argument("--npt-probability", type=float, default=0.45)
     args = ap.parse_args(argv)
 
     out = Path(args.out)

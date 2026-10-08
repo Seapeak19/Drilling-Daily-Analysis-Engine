@@ -9,8 +9,9 @@
     ddr parse 日报.pdf --csv out/t.csv        # 同时导出时间分解 CSV
     ddr chart 日报.pdf                        # 生成时效分解图 HTML
     ddr batch data/samples/samples            # 批量解析整个目录
-    ddr check data/samples/dataset.json       # 数据集 ground truth 自检
-    ddr eval  data/samples                    # 跑评测出准确率报告
+    ddr stats  --data data/samples            # 数据集特征统计（覆盖/合规率/字段可用率）
+    ddr check  data/samples/dataset.json      # 数据集 ground truth 自检
+    ddr eval   data/samples                   # 跑评测出准确率报告
     ddr robust                                # 跑畸形日报鲁棒性测试
     ddr info                                  # 打印支持的模板与操作码字典
 """
@@ -209,6 +210,23 @@ def cmd_robust(args) -> int:
     return 1 if bad else 0
 
 
+def cmd_stats(args) -> int:
+    from .stats import compute_stats, render_text
+
+    try:
+        st = compute_stats(args.data)
+    except FileNotFoundError as exc:
+        print(f"错误：{exc}", file=sys.stderr)
+        return 2
+    if args.json:
+        print(json.dumps(st.to_dict(), ensure_ascii=False, indent=2))
+    else:
+        print(render_text(st))
+        print()
+        print("提示：`--json` 可拿到机器可读版本；`ddr eval` 可拿到字段准确率。")
+    return 0
+
+
 def cmd_info(args) -> int:
     cm = load_code_map()
     print(f"ddr-parser {__version__}")
@@ -273,6 +291,11 @@ def build_parser():
     p = sub.add_parser("robust", help="跑畸形日报鲁棒性测试")
     p.add_argument("--out", default="data/samples/robustness_report.md")
     p.set_defaults(func=cmd_robust)
+
+    p = sub.add_parser("stats", help="统计数据集特征（覆盖范围、合规率、字段可用率）")
+    p.add_argument("--data", default="data/samples")
+    p.add_argument("--json", action="store_true", help="输出 JSON 而非文本")
+    p.set_defaults(func=cmd_stats)
 
     p = sub.add_parser("info", help="打印支持的模板与操作码字典")
     p.set_defaults(func=cmd_info)

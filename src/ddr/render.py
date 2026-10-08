@@ -712,7 +712,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--wells", type=int, default=3)
     ap.add_argument("--days", type=int, default=7)
     ap.add_argument("--seed", type=int, default=20261008)
-    ap.add_argument("--npt-probability", type=float, default=0.35)
+    ap.add_argument("--npt-probability", type=float, default=0.45)
     args = ap.parse_args(argv)
 
     out = Path(args.out)
