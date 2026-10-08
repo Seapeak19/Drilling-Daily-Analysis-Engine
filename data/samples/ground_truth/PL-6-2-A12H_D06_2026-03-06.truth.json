@@ -1,0 +1,136 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "regional_xls",
+  "source_file": "samples/PL-6-2-A12H_D06_2026-03-06.xlsx",
+  "well_name": "PL-6-2-A12H",
+  "operator": "中海石油（中国）有限公司天津分公司",
+  "contractor": "中海油田服务股份有限公司",
+  "rig": "海洋石油 942",
+  "field": "蓬莱 19-3",
+  "report_date": "2026-03-06",
+  "truth": {
+    "report_date": "2026-03-06",
+    "report_no": 6,
+    "md_m": 2697.73,
+    "md_in_start_m": 2667.76,
+    "tvd_m": 2350.89,
+    "progress_m": 29.97,
+    "etim_drill_h": 0,
+    "rop_av_m_per_h": null,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 12.8,
+        "code": "TRIP_OUT",
+        "operation": "起钻（起立柱）",
+        "npt_category": null
+      },
+      {
+        "hours": 1.9,
+        "code": "BIT_CHANGE",
+        "operation": "更换钻头、检查钻具",
+        "npt_category": null
+      },
+      {
+        "hours": 1.6,
+        "code": "CIRCULATE",
+        "operation": "循环洗井，处理井筒",
+        "npt_category": null
+      },
+      {
+        "hours": 1.2,
+        "code": "TEST",
+        "operation": "安全检查与井控装备检查",
+        "npt_category": null
+      },
+      {
+        "hours": 6.5,
+        "code": "FISH",
+        "operation": "钻具落井，下入打捞筒打捞",
+        "npt_category": "wellbore"
+      }
+    ],
+    "npt_hours": 6.5,
+    "npt_events": [
+      {
+        "operation": "钻具落井，下入打捞筒打捞",
+        "hours": 6.5,
+        "code": "FISH",
+        "npt_category": "wellbore",
+        "npt_responsibility": "contractor"
+      }
+    ],
+    "connections": [],
+    "connection_count": 0,
+    "mud": {
+      "density_gcc": 1.28,
+      "funnel_viscosity_s": 45.0,
+      "fl_ml": 5.5
+    },
+    "hole_diameter_in": 12.25,
+    "etim_spud_days": 15.4,
+    "well_status": "起钻",
+    "dtim_spud": "2026-02-24T08:00:00+08:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:30 钻进至 2685.38 m，钻压 86 kN，转速 137 rpm，排量 28 L/s，钻时 14.9 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "08:00",
+        "text": "08:30 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "11:00",
+        "text": "11:15 循环调整泥浆性能，密度提至 1.29 g/cm3，漏斗粘度 47 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "13:00",
+        "text": "13:30 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "16:00",
+        "text": "16:00 地质录井汇报：岩性为灰色细砂岩，荧光显示 2 级。"
+      },
+      {
+        "seq": 6,
+        "time_hint": "19:00",
+        "text": "19:45 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 7,
+        "time_hint": "21:00",
+        "text": "21:15 接单根，耗时 12 分钟。"
+      }
+    ],
+    "phase": "trip_out",
+    "template_id": "regional_xls",
+    "unit_system": "metric",
+    "bit_records": [
+      {
+        "bit_no": 2,
+        "size_in": 12.25,
+        "make": "Varel",
+        "model": "HDD505",
+        "type": "PDC",
+        "iadc_code": "M223",
+        "nozzles_32nds": "3x13+1x14",
+        "depth_in_m": 2336.79,
+        "depth_out_m": 2664.71,
+        "footage_m": 327.92,
+        "hours": 75.3,
+        "rop_m_per_h": 4.35,
+        "wob_kgf": 104.0,
+        "rpm": 81.0,
+        "flow_lps": 31.0,
+        "dull_grade": "2-2-WT-M-X-I-NO-TD",
+        "hours_source": "reported"
+      }
+    ]
+  }
+}

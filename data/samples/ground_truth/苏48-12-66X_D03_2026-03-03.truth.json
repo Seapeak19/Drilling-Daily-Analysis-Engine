@@ -1,0 +1,126 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "regional_xls",
+  "source_file": "samples/苏48-12-66X_D03_2026-03-03.xlsx",
+  "well_name": "苏 48-12-66X",
+  "operator": "长庆油田分公司",
+  "contractor": "川庆钻探工程有限公司",
+  "rig": "川庆 5060",
+  "field": "苏里格",
+  "report_date": "2026-03-03",
+  "truth": {
+    "report_date": "2026-03-03",
+    "report_no": 3,
+    "md_m": 2544.96,
+    "md_in_start_m": 2544.94,
+    "tvd_m": 2332.82,
+    "progress_m": 0.02,
+    "etim_drill_h": 0,
+    "rop_av_m_per_h": null,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 17.8,
+        "code": "TRIP_OUT",
+        "operation": "起钻（起立柱）",
+        "npt_category": null
+      },
+      {
+        "hours": 1.4,
+        "code": "BIT_CHANGE",
+        "operation": "更换钻头、检查钻具",
+        "npt_category": null
+      },
+      {
+        "hours": 1.8,
+        "code": "CIRCULATE",
+        "operation": "循环洗井，处理井筒",
+        "npt_category": null
+      },
+      {
+        "hours": 1.5,
+        "code": "TEST",
+        "operation": "安全检查与井控装备检查",
+        "npt_category": null
+      },
+      {
+        "hours": 1.5,
+        "code": "REPAIR",
+        "operation": "2 号柴油发电机组水温高，降负荷检修",
+        "npt_category": "equipment"
+      }
+    ],
+    "npt_hours": 1.5,
+    "npt_events": [
+      {
+        "operation": "2 号柴油发电机组水温高，降负荷检修",
+        "hours": 1.5,
+        "code": "REPAIR",
+        "npt_category": "equipment",
+        "npt_responsibility": "contractor"
+      }
+    ],
+    "connections": [],
+    "connection_count": 0,
+    "mud": {
+      "density_gcc": 1.15,
+      "funnel_viscosity_s": 54.0,
+      "fl_ml": 5.4
+    },
+    "hole_diameter_in": 8.5,
+    "etim_spud_days": 14.9,
+    "well_status": "起钻",
+    "dtim_spud": "2026-02-19T08:00:00+08:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:00 钻进至 2544.10 m，钻压 60 kN，转速 96 rpm，排量 29 L/s，钻时 13.0 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "08:00",
+        "text": "08:45 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "11:00",
+        "text": "11:00 循环调整泥浆性能，密度提至 1.23 g/cm3，漏斗粘度 50 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "13:00",
+        "text": "13:00 地质录井汇报：岩性为灰色细砂岩，荧光显示 1 级。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "15:00",
+        "text": "15:45 短起下检查井眼，返砂正常。"
+      }
+    ],
+    "phase": "trip_out",
+    "template_id": "regional_xls",
+    "unit_system": "metric",
+    "bit_records": [
+      {
+        "bit_no": 1,
+        "size_in": 8.5,
+        "make": "SLB",
+        "model": "MDi516",
+        "type": "PDC",
+        "iadc_code": "M323",
+        "nozzles_32nds": "4x12",
+        "depth_in_m": 1470.87,
+        "depth_out_m": 2537.3,
+        "footage_m": 1066.43,
+        "hours": 81.5,
+        "rop_m_per_h": 13.09,
+        "wob_kgf": 105.0,
+        "rpm": 155.0,
+        "flow_lps": 37.9,
+        "dull_grade": "3-4-BT-S-X-I-HR-TD",
+        "hours_source": "reported"
+      }
+    ]
+  }
+}

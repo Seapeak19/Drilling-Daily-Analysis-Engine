@@ -1,0 +1,154 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "regional_xls",
+  "source_file": "samples/15-9-F-14_D03_2026-03-03.xlsx",
+  "well_name": "15/9-F-14",
+  "operator": "Equinor Energy AS",
+  "contractor": "Maersk Drilling",
+  "rig": "Maersk Inspirer",
+  "field": "Volve",
+  "report_date": "2026-03-03",
+  "truth": {
+    "report_date": "2026-03-03",
+    "report_no": 3,
+    "md_m": 2279.29,
+    "md_in_start_m": 2260.64,
+    "tvd_m": 2057.58,
+    "progress_m": 18.65,
+    "etim_drill_h": 0,
+    "rop_av_m_per_h": null,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 13.6,
+        "code": "TRIP_OUT",
+        "operation": "起钻（起立柱）",
+        "npt_category": null
+      },
+      {
+        "hours": 1.8,
+        "code": "BIT_CHANGE",
+        "operation": "更换钻头、检查钻具",
+        "npt_category": null
+      },
+      {
+        "hours": 2.7,
+        "code": "CIRCULATE",
+        "operation": "循环洗井，处理井筒",
+        "npt_category": null
+      },
+      {
+        "hours": 1.4,
+        "code": "TEST",
+        "operation": "安全检查与井控装备检查",
+        "npt_category": null
+      },
+      {
+        "hours": 1.5,
+        "code": "REPAIR",
+        "operation": "2 号柴油发电机组水温高，降负荷检修",
+        "npt_category": "equipment"
+      },
+      {
+        "hours": 3.0,
+        "code": "WEATHER",
+        "operation": "大风，吊装作业暂停",
+        "npt_category": "weather"
+      }
+    ],
+    "npt_hours": 4.5,
+    "npt_events": [
+      {
+        "operation": "2 号柴油发电机组水温高，降负荷检修",
+        "hours": 1.5,
+        "code": "REPAIR",
+        "npt_category": "equipment",
+        "npt_responsibility": "contractor"
+      },
+      {
+        "operation": "大风，吊装作业暂停",
+        "hours": 3.0,
+        "code": "WEATHER",
+        "npt_category": "weather",
+        "npt_responsibility": "force_majeure"
+      }
+    ],
+    "connections": [],
+    "connection_count": 0,
+    "mud": {
+      "density_gcc": 1.19,
+      "funnel_viscosity_s": 48.0,
+      "fl_ml": 4.4
+    },
+    "hole_diameter_in": 8.5,
+    "etim_spud_days": 16.0,
+    "well_status": "起钻",
+    "dtim_spud": "2026-02-18T08:00:00+01:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:00 钻进至 2277.88 m，钻压 120 kN，转速 140 rpm，排量 32 L/s，钻时 17.0 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "08:00",
+        "text": "08:30 接单根，耗时 18 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "11:00",
+        "text": "11:15 循环调整泥浆性能，密度提至 1.23 g/cm3，漏斗粘度 44 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "13:00",
+        "text": "13:00 地质录井汇报：岩性为灰色细砂岩，荧光显示 1 级。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "16:00",
+        "text": "16:45 安全检查：井控装备完好，防喷器控制系统压力正常。"
+      },
+      {
+        "seq": 6,
+        "time_hint": "18:00",
+        "text": "18:45 接单根，耗时 18 分钟。"
+      },
+      {
+        "seq": 7,
+        "time_hint": "20:00",
+        "text": "20:30 短起下检查井眼，返砂正常。"
+      },
+      {
+        "seq": 8,
+        "time_hint": "23:00",
+        "text": "23:00 接单根，耗时 18 分钟。"
+      }
+    ],
+    "phase": "trip_out",
+    "template_id": "regional_xls",
+    "unit_system": "imperial",
+    "bit_records": [
+      {
+        "bit_no": 1,
+        "size_in": 8.5,
+        "make": "Smith",
+        "model": "MSi616",
+        "type": "PDC",
+        "iadc_code": "M223",
+        "nozzles_32nds": "5x11+1x12",
+        "depth_in_m": 1297.95,
+        "depth_out_m": 2258.56,
+        "footage_m": 960.61,
+        "hours": 50.0,
+        "rop_m_per_h": 19.21,
+        "wob_kgf": 138.0,
+        "rpm": 144.0,
+        "flow_lps": 29.0,
+        "dull_grade": "1-2-CT-M-X-I-NO-PR",
+        "hours_source": "reported"
+      }
+    ]
+  }
+}

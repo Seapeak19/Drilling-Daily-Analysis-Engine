@@ -1,0 +1,420 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "iadc_classic",
+  "source_file": "samples/PL-6-2-A12H_D02_2026-03-02.pdf",
+  "well_name": "PL-6-2-A12H",
+  "operator": "中海石油（中国）有限公司天津分公司",
+  "contractor": "中海油田服务股份有限公司",
+  "rig": "海洋石油 942",
+  "field": "蓬莱 19-3",
+  "report_date": "2026-03-02",
+  "truth": {
+    "report_date": "2026-03-02",
+    "report_no": 2,
+    "md_m": 2349.67,
+    "md_in_start_m": 2130.36,
+    "tvd_m": 2315.59,
+    "progress_m": 219.31,
+    "etim_drill_h": 17.8,
+    "rop_av_m_per_h": 12.32,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 13.2,
+        "code": "DRILL",
+        "operation": "旋转钻进 12.25″ 井段，钻压 73 kN，转速 82 rpm",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 1.7,
+        "code": "CIRCULATE",
+        "operation": "循环洗井至井底返出，观察返砂",
+        "npt_category": null
+      },
+      {
+        "hours": 1.9,
+        "code": "TRIP_OUT",
+        "operation": "短起下，划眼通井",
+        "npt_category": null
+      },
+      {
+        "hours": 2.3,
+        "code": "TRIP_IN",
+        "operation": "下钻到底",
+        "npt_category": null
+      },
+      {
+        "hours": 0.3,
+        "code": "LOGGING",
+        "operation": "MWD 测斜",
+        "npt_category": null
+      }
+    ],
+    "npt_hours": 0,
+    "npt_events": [],
+    "connections": [
+      {
+        "seq": 1,
+        "shift": "day",
+        "minutes": 9.0,
+        "hours": 0.2,
+        "start": "13:12",
+        "end": "13:24"
+      },
+      {
+        "seq": 2,
+        "shift": "night",
+        "minutes": 12.1,
+        "hours": 0.2,
+        "start": "13:24",
+        "end": "13:36"
+      },
+      {
+        "seq": 3,
+        "shift": "day",
+        "minutes": 9.0,
+        "hours": 0.2,
+        "start": "13:36",
+        "end": "13:48"
+      },
+      {
+        "seq": 4,
+        "shift": "night",
+        "minutes": 13.2,
+        "hours": 0.2,
+        "start": "13:48",
+        "end": "14:00"
+      },
+      {
+        "seq": 5,
+        "shift": "day",
+        "minutes": 10.0,
+        "hours": 0.2,
+        "start": "14:00",
+        "end": "14:12"
+      },
+      {
+        "seq": 6,
+        "shift": "night",
+        "minutes": 12.9,
+        "hours": 0.2,
+        "start": "14:12",
+        "end": "14:24"
+      },
+      {
+        "seq": 7,
+        "shift": "day",
+        "minutes": 9.0,
+        "hours": 0.2,
+        "start": "14:24",
+        "end": "14:36"
+      },
+      {
+        "seq": 8,
+        "shift": "night",
+        "minutes": 12.5,
+        "hours": 0.2,
+        "start": "14:36",
+        "end": "14:48"
+      },
+      {
+        "seq": 9,
+        "shift": "day",
+        "minutes": 9.0,
+        "hours": 0.2,
+        "start": "14:48",
+        "end": "15:00"
+      },
+      {
+        "seq": 10,
+        "shift": "night",
+        "minutes": 11.3,
+        "hours": 0.2,
+        "start": "15:00",
+        "end": "15:12"
+      },
+      {
+        "seq": 11,
+        "shift": "day",
+        "minutes": 9.3,
+        "hours": 0.2,
+        "start": "15:12",
+        "end": "15:24"
+      },
+      {
+        "seq": 12,
+        "shift": "night",
+        "minutes": 11.7,
+        "hours": 0.2,
+        "start": "15:24",
+        "end": "15:36"
+      },
+      {
+        "seq": 13,
+        "shift": "day",
+        "minutes": 9.6,
+        "hours": 0.2,
+        "start": "15:36",
+        "end": "15:48"
+      },
+      {
+        "seq": 14,
+        "shift": "night",
+        "minutes": 11.6,
+        "hours": 0.2,
+        "start": "15:48",
+        "end": "16:00"
+      },
+      {
+        "seq": 15,
+        "shift": "day",
+        "minutes": 10.5,
+        "hours": 0.2,
+        "start": "16:00",
+        "end": "16:12"
+      },
+      {
+        "seq": 16,
+        "shift": "night",
+        "minutes": 12.9,
+        "hours": 0.2,
+        "start": "16:12",
+        "end": "16:24"
+      },
+      {
+        "seq": 17,
+        "shift": "day",
+        "minutes": 9.0,
+        "hours": 0.2,
+        "start": "16:24",
+        "end": "16:36"
+      },
+      {
+        "seq": 18,
+        "shift": "night",
+        "minutes": 13.7,
+        "hours": 0.2,
+        "start": "16:36",
+        "end": "16:48"
+      },
+      {
+        "seq": 19,
+        "shift": "day",
+        "minutes": 9.0,
+        "hours": 0.2,
+        "start": "16:48",
+        "end": "17:00"
+      },
+      {
+        "seq": 20,
+        "shift": "night",
+        "minutes": 11.9,
+        "hours": 0.2,
+        "start": "17:00",
+        "end": "17:12"
+      },
+      {
+        "seq": 21,
+        "shift": "day",
+        "minutes": 9.2,
+        "hours": 0.2,
+        "start": "17:12",
+        "end": "17:24"
+      },
+      {
+        "seq": 22,
+        "shift": "night",
+        "minutes": 11.1,
+        "hours": 0.2,
+        "start": "17:24",
+        "end": "17:36"
+      },
+      {
+        "seq": 23,
+        "shift": "day",
+        "minutes": 10.3,
+        "hours": 0.2,
+        "start": "17:36",
+        "end": "17:48"
+      }
+    ],
+    "connection_count": 23,
+    "mud": {
+      "density_gcc": 1.29,
+      "funnel_viscosity_s": 39.0,
+      "fl_ml": 3.5
+    },
+    "hole_diameter_in": 12.25,
+    "etim_spud_days": 11.4,
+    "well_status": "钻进",
+    "dtim_spud": "2026-02-20T08:00:00+08:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:30 钻进至 2220.30 m，钻压 136 kN，转速 114 rpm，排量 30 L/s，钻时 12.4 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "08:00",
+        "text": "08:15 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "10:00",
+        "text": "10:15 循环调整泥浆性能，密度提至 1.29 g/cm3，漏斗粘度 46 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "12:00",
+        "text": "12:00 短起下检查井眼，返砂正常。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "14:00",
+        "text": "14:45 循环调整泥浆性能，密度提至 1.08 g/cm3，漏斗粘度 49 s。"
+      }
+    ],
+    "phase": "drilling",
+    "template_id": "iadc_classic",
+    "unit_system": "metric"
+  }
+}

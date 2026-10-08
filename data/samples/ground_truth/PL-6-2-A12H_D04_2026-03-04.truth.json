@@ -1,0 +1,195 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "cn_vertical",
+  "source_file": "samples/PL-6-2-A12H_D04_2026-03-04.pdf",
+  "well_name": "PL-6-2-A12H",
+  "operator": "中海石油（中国）有限公司天津分公司",
+  "contractor": "中海油田服务股份有限公司",
+  "rig": "海洋石油 942",
+  "field": "蓬莱 19-3",
+  "report_date": "2026-03-04",
+  "truth": {
+    "report_date": "2026-03-04",
+    "report_no": 4,
+    "md_m": 2416.31,
+    "md_in_start_m": 2355.07,
+    "tvd_m": 2379.09,
+    "progress_m": 61.24,
+    "etim_drill_h": 5.6,
+    "rop_av_m_per_h": 10.94,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 13.8,
+        "code": "TRIP_IN",
+        "operation": "下钻（下立柱）",
+        "npt_category": null
+      },
+      {
+        "hours": 1.5,
+        "code": "CIRCULATE",
+        "operation": "循环洗井，恢复泥浆性能",
+        "npt_category": null
+      },
+      {
+        "hours": 4.4,
+        "code": "DRILL",
+        "operation": "旋转钻进 12.25″ 井段（恢复钻进）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.6,
+        "code": "TRIP_OUT",
+        "operation": "短起下检查井眼",
+        "npt_category": null
+      },
+      {
+        "hours": 2.5,
+        "code": "REPAIR",
+        "operation": "顶驱 VFD 故障，等待电气师排查",
+        "npt_category": "equipment"
+      }
+    ],
+    "npt_hours": 2.5,
+    "npt_events": [
+      {
+        "operation": "顶驱 VFD 故障，等待电气师排查",
+        "hours": 2.5,
+        "code": "REPAIR",
+        "npt_category": "equipment",
+        "npt_responsibility": "contractor"
+      }
+    ],
+    "connections": [
+      {
+        "seq": 1,
+        "shift": "day",
+        "minutes": 9.8,
+        "hours": 0.2,
+        "start": "19:42",
+        "end": "19:54"
+      },
+      {
+        "seq": 2,
+        "shift": "night",
+        "minutes": 13.8,
+        "hours": 0.2,
+        "start": "19:54",
+        "end": "20:06"
+      },
+      {
+        "seq": 3,
+        "shift": "day",
+        "minutes": 10.6,
+        "hours": 0.2,
+        "start": "20:06",
+        "end": "20:18"
+      },
+      {
+        "seq": 4,
+        "shift": "night",
+        "minutes": 12.4,
+        "hours": 0.2,
+        "start": "20:18",
+        "end": "20:30"
+      },
+      {
+        "seq": 5,
+        "shift": "day",
+        "minutes": 10.2,
+        "hours": 0.2,
+        "start": "20:30",
+        "end": "20:42"
+      },
+      {
+        "seq": 6,
+        "shift": "night",
+        "minutes": 13.3,
+        "hours": 0.2,
+        "start": "20:42",
+        "end": "20:54"
+      }
+    ],
+    "connection_count": 6,
+    "mud": {
+      "density_gcc": 1.16,
+      "funnel_viscosity_s": 39.0,
+      "fl_ml": 5.9
+    },
+    "hole_diameter_in": 12.25,
+    "etim_spud_days": 13.4,
+    "well_status": "下钻",
+    "dtim_spud": "2026-02-22T08:00:00+08:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:00 钻进至 2365.74 m，钻压 134 kN，转速 89 rpm，排量 33 L/s，钻时 11.8 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "08:00",
+        "text": "08:30 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "10:00",
+        "text": "10:30 循环调整泥浆性能，密度提至 1.16 g/cm3，漏斗粘度 56 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "13:00",
+        "text": "13:00 钻进至 2412.81 m，钻压 108 kN，转速 153 rpm，排量 38 L/s，钻时 8.5 m/h。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "16:00",
+        "text": "16:30 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 6,
+        "time_hint": "19:00",
+        "text": "19:15 起钻至 2387.25 m，期间无遇卡显示。"
+      }
+    ],
+    "phase": "trip_in",
+    "template_id": "cn_vertical",
+    "unit_system": "metric"
+  }
+}

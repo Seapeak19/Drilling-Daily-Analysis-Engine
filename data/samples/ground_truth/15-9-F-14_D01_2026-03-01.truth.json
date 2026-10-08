@@ -1,0 +1,307 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "cn_vertical",
+  "source_file": "samples/15-9-F-14_D01_2026-03-01.pdf",
+  "well_name": "15/9-F-14",
+  "operator": "Equinor Energy AS",
+  "contractor": "Maersk Drilling",
+  "rig": "Maersk Inspirer",
+  "field": "Volve",
+  "report_date": "2026-03-01",
+  "truth": {
+    "report_date": "2026-03-01",
+    "report_no": 1,
+    "md_m": 1981.0,
+    "md_in_start_m": 1839.43,
+    "tvd_m": 1916.74,
+    "progress_m": 141.57,
+    "etim_drill_h": 13.7,
+    "rop_av_m_per_h": 10.33,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 6.2,
+        "code": "BOP",
+        "operation": "安装井口与防喷器",
+        "npt_category": null
+      },
+      {
+        "hours": 2.0,
+        "code": "TEST",
+        "operation": "防喷器功能试验与试压",
+        "npt_category": null
+      },
+      {
+        "hours": 2.1,
+        "code": "MUD_COND",
+        "operation": "建立循环、配浆",
+        "npt_category": null
+      },
+      {
+        "hours": 9.9,
+        "code": "DRILL",
+        "operation": "表层钻进（444.5 mm 井眼）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.3,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.3,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.3,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.3,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.3,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.3,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.3,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.3,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      }
+    ],
+    "npt_hours": 0,
+    "npt_events": [],
+    "connections": [
+      {
+        "seq": 1,
+        "shift": "day",
+        "minutes": 13.4,
+        "hours": 0.2,
+        "start": "20:12",
+        "end": "20:24"
+      },
+      {
+        "seq": 2,
+        "shift": "night",
+        "minutes": 17.6,
+        "hours": 0.3,
+        "start": "20:24",
+        "end": "20:42"
+      },
+      {
+        "seq": 3,
+        "shift": "day",
+        "minutes": 15.7,
+        "hours": 0.3,
+        "start": "20:42",
+        "end": "21:00"
+      },
+      {
+        "seq": 4,
+        "shift": "night",
+        "minutes": 17.4,
+        "hours": 0.3,
+        "start": "21:00",
+        "end": "21:18"
+      },
+      {
+        "seq": 5,
+        "shift": "day",
+        "minutes": 14.8,
+        "hours": 0.2,
+        "start": "21:18",
+        "end": "21:30"
+      },
+      {
+        "seq": 6,
+        "shift": "night",
+        "minutes": 16.9,
+        "hours": 0.3,
+        "start": "21:30",
+        "end": "21:48"
+      },
+      {
+        "seq": 7,
+        "shift": "day",
+        "minutes": 13.2,
+        "hours": 0.2,
+        "start": "21:48",
+        "end": "22:00"
+      },
+      {
+        "seq": 8,
+        "shift": "night",
+        "minutes": 19.0,
+        "hours": 0.3,
+        "start": "22:00",
+        "end": "22:18"
+      },
+      {
+        "seq": 9,
+        "shift": "day",
+        "minutes": 13.4,
+        "hours": 0.2,
+        "start": "22:18",
+        "end": "22:30"
+      },
+      {
+        "seq": 10,
+        "shift": "night",
+        "minutes": 19.9,
+        "hours": 0.3,
+        "start": "22:30",
+        "end": "22:48"
+      },
+      {
+        "seq": 11,
+        "shift": "day",
+        "minutes": 15.0,
+        "hours": 0.2,
+        "start": "22:48",
+        "end": "23:00"
+      },
+      {
+        "seq": 12,
+        "shift": "night",
+        "minutes": 17.3,
+        "hours": 0.3,
+        "start": "23:00",
+        "end": "23:18"
+      },
+      {
+        "seq": 13,
+        "shift": "day",
+        "minutes": 13.3,
+        "hours": 0.2,
+        "start": "23:18",
+        "end": "23:30"
+      },
+      {
+        "seq": 14,
+        "shift": "night",
+        "minutes": 18.3,
+        "hours": 0.3,
+        "start": "23:30",
+        "end": "23:48"
+      },
+      {
+        "seq": 15,
+        "shift": "day",
+        "minutes": 14.0,
+        "hours": 0.2,
+        "start": "23:48",
+        "end": "24:00"
+      }
+    ],
+    "connection_count": 15,
+    "mud": {
+      "density_gcc": 1.21,
+      "funnel_viscosity_s": 43.0,
+      "fl_ml": 5.6
+    },
+    "hole_diameter_in": 17.5,
+    "etim_spud_days": 14.0,
+    "well_status": "表层作业",
+    "dtim_spud": "2026-02-16T08:00:00+01:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:45 钻进至 1939.19 m，钻压 122 kN，转速 136 rpm，排量 29 L/s，钻时 17.7 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "09:00",
+        "text": "09:00 接单根，耗时 18 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "12:00",
+        "text": "12:30 循环调整泥浆性能，密度提至 1.14 g/cm3，漏斗粘度 47 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "15:00",
+        "text": "15:45 起钻至 1904.69 m，期间无遇卡显示。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "17:00",
+        "text": "17:00 接单根，耗时 18 分钟。"
+      },
+      {
+        "seq": 6,
+        "time_hint": "20:00",
+        "text": "20:00 循环调整泥浆性能，密度提至 1.15 g/cm3，漏斗粘度 49 s。"
+      }
+    ],
+    "phase": "surface",
+    "template_id": "cn_vertical",
+    "unit_system": "imperial"
+  }
+}

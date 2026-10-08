@@ -1,0 +1,136 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "regional_xls",
+  "source_file": "samples/15-9-F-14_D06_2026-03-06.xlsx",
+  "well_name": "15/9-F-14",
+  "operator": "Equinor Energy AS",
+  "contractor": "Maersk Drilling",
+  "rig": "Maersk Inspirer",
+  "field": "Volve",
+  "report_date": "2026-03-06",
+  "truth": {
+    "report_date": "2026-03-06",
+    "report_no": 6,
+    "md_m": 2572.22,
+    "md_in_start_m": 2554.53,
+    "tvd_m": 2355.09,
+    "progress_m": 17.69,
+    "etim_drill_h": 0,
+    "rop_av_m_per_h": null,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 18.8,
+        "code": "TRIP_OUT",
+        "operation": "起钻（起立柱）",
+        "npt_category": null
+      },
+      {
+        "hours": 1.7,
+        "code": "BIT_CHANGE",
+        "operation": "更换钻头、检查钻具",
+        "npt_category": null
+      },
+      {
+        "hours": 2.0,
+        "code": "CIRCULATE",
+        "operation": "循环洗井，处理井筒",
+        "npt_category": null
+      },
+      {
+        "hours": 0.5,
+        "code": "TEST",
+        "operation": "安全检查与井控装备检查",
+        "npt_category": null
+      },
+      {
+        "hours": 1.0,
+        "code": "REPAIR",
+        "operation": "振动筛筛布破损，更换筛布",
+        "npt_category": "equipment"
+      }
+    ],
+    "npt_hours": 1.0,
+    "npt_events": [
+      {
+        "operation": "振动筛筛布破损，更换筛布",
+        "hours": 1.0,
+        "code": "REPAIR",
+        "npt_category": "equipment",
+        "npt_responsibility": "contractor"
+      }
+    ],
+    "connections": [],
+    "connection_count": 0,
+    "mud": {
+      "density_gcc": 1.26,
+      "funnel_viscosity_s": 58.0,
+      "fl_ml": 3.0
+    },
+    "hole_diameter_in": 8.5,
+    "etim_spud_days": 19.0,
+    "well_status": "起钻",
+    "dtim_spud": "2026-02-21T08:00:00+01:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:30 钻进至 2565.61 m，钻压 102 kN，转速 125 rpm，排量 32 L/s，钻时 10.9 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "09:00",
+        "text": "09:00 接单根，耗时 18 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "11:00",
+        "text": "11:15 循环调整泥浆性能，密度提至 1.09 g/cm3，漏斗粘度 39 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "14:00",
+        "text": "14:15 地质录井汇报：岩性为灰色细砂岩，荧光显示 1 级。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "17:00",
+        "text": "17:00 起钻至 2557.67 m，期间无遇卡显示。"
+      },
+      {
+        "seq": 6,
+        "time_hint": "20:00",
+        "text": "20:15 起钻至 2570.55 m，期间无遇卡显示。"
+      },
+      {
+        "seq": 7,
+        "time_hint": "22:00",
+        "text": "22:45 短起下检查井眼，返砂正常。"
+      }
+    ],
+    "phase": "trip_out",
+    "template_id": "regional_xls",
+    "unit_system": "imperial",
+    "bit_records": [
+      {
+        "bit_no": 2,
+        "size_in": 8.5,
+        "make": "Halliburton",
+        "model": "HDD505",
+        "type": "PDC",
+        "iadc_code": "M323",
+        "nozzles_32nds": "3x12+1x13",
+        "depth_in_m": 2258.56,
+        "depth_out_m": 2542.81,
+        "footage_m": 284.25,
+        "hours": 48.5,
+        "rop_m_per_h": 5.86,
+        "wob_kgf": 80.0,
+        "rpm": 111.0,
+        "flow_lps": 30.1,
+        "dull_grade": "2-3-WT-S-X-I-NO-TD",
+        "hours_source": "reported"
+      }
+    ]
+  }
+}

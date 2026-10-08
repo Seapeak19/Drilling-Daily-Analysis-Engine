@@ -1,0 +1,131 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "regional_xls",
+  "source_file": "samples/苏48-12-66X_D06_2026-03-06.xlsx",
+  "well_name": "苏 48-12-66X",
+  "operator": "长庆油田分公司",
+  "contractor": "川庆钻探工程有限公司",
+  "rig": "川庆 5060",
+  "field": "苏里格",
+  "report_date": "2026-03-06",
+  "truth": {
+    "report_date": "2026-03-06",
+    "report_no": 6,
+    "md_m": 2906.92,
+    "md_in_start_m": 2879.69,
+    "tvd_m": 2533.75,
+    "progress_m": 27.23,
+    "etim_drill_h": 0,
+    "rop_av_m_per_h": null,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 17.1,
+        "code": "TRIP_OUT",
+        "operation": "起钻（起立柱）",
+        "npt_category": null
+      },
+      {
+        "hours": 1.3,
+        "code": "BIT_CHANGE",
+        "operation": "更换钻头、检查钻具",
+        "npt_category": null
+      },
+      {
+        "hours": 2.4,
+        "code": "CIRCULATE",
+        "operation": "循环洗井，处理井筒",
+        "npt_category": null
+      },
+      {
+        "hours": 0.7,
+        "code": "TEST",
+        "operation": "安全检查与井控装备检查",
+        "npt_category": null
+      },
+      {
+        "hours": 2.5,
+        "code": "WAIT",
+        "operation": "等待地质指令，甲方未下达中完决策",
+        "npt_category": "logistics"
+      }
+    ],
+    "npt_hours": 2.5,
+    "npt_events": [
+      {
+        "operation": "等待地质指令，甲方未下达中完决策",
+        "hours": 2.5,
+        "code": "WAIT",
+        "npt_category": "logistics",
+        "npt_responsibility": "operator"
+      }
+    ],
+    "connections": [],
+    "connection_count": 0,
+    "mud": {
+      "density_gcc": 1.27,
+      "funnel_viscosity_s": 53.0,
+      "fl_ml": 3.4
+    },
+    "hole_diameter_in": 8.5,
+    "etim_spud_days": 17.9,
+    "well_status": "起钻",
+    "dtim_spud": "2026-02-22T08:00:00+08:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:00 钻进至 2886.52 m，钻压 128 kN，转速 133 rpm，排量 35 L/s，钻时 13.7 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "08:00",
+        "text": "08:45 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "11:00",
+        "text": "11:45 循环调整泥浆性能，密度提至 1.18 g/cm3，漏斗粘度 42 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "13:00",
+        "text": "13:30 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "16:00",
+        "text": "16:45 地质录井汇报：岩性为灰色细砂岩，荧光显示 1 级。"
+      },
+      {
+        "seq": 6,
+        "time_hint": "18:00",
+        "text": "18:15 循环调整泥浆性能，密度提至 1.14 g/cm3，漏斗粘度 51 s。"
+      }
+    ],
+    "phase": "trip_out",
+    "template_id": "regional_xls",
+    "unit_system": "metric",
+    "bit_records": [
+      {
+        "bit_no": 2,
+        "size_in": 8.5,
+        "make": "Kingdream",
+        "model": "MSi616",
+        "type": "PDC",
+        "iadc_code": "M332",
+        "nozzles_32nds": "3x13+1x14",
+        "depth_in_m": 2537.3,
+        "depth_out_m": 2879.03,
+        "footage_m": 341.73,
+        "hours": 70.5,
+        "rop_m_per_h": 4.85,
+        "wob_kgf": 136.0,
+        "rpm": 141.0,
+        "flow_lps": 33.2,
+        "dull_grade": "3-4-BT-S-X-I-HR-TD",
+        "hours_source": "reported"
+      }
+    ]
+  }
+}

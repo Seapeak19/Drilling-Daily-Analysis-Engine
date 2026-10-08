@@ -1,0 +1,116 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "iadc_classic",
+  "source_file": "samples/PL-6-2-A12H_D07_2026-03-07.pdf",
+  "well_name": "PL-6-2-A12H",
+  "operator": "中海石油（中国）有限公司天津分公司",
+  "contractor": "中海油田服务股份有限公司",
+  "rig": "海洋石油 942",
+  "field": "蓬莱 19-3",
+  "report_date": "2026-03-07",
+  "truth": {
+    "report_date": "2026-03-07",
+    "report_no": 7,
+    "md_m": 2697.73,
+    "md_in_start_m": 2697.73,
+    "tvd_m": 2648.28,
+    "progress_m": 0.0,
+    "etim_drill_h": 4.4,
+    "rop_av_m_per_h": null,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 4.4,
+        "code": "REAM",
+        "operation": "通井划眼，确认井眼畅通",
+        "npt_category": null
+      },
+      {
+        "hours": 10.1,
+        "code": "CASING",
+        "operation": "下套管（套管串组装）",
+        "npt_category": null
+      },
+      {
+        "hours": 4.4,
+        "code": "CEMENT",
+        "operation": "固井作业，注水泥",
+        "npt_category": null
+      },
+      {
+        "hours": 2.1,
+        "code": "BOP",
+        "operation": "候凝，安装井口",
+        "npt_category": null
+      },
+      {
+        "hours": 2.0,
+        "code": "TEST",
+        "operation": "套管试压",
+        "npt_category": null
+      },
+      {
+        "hours": 1.0,
+        "code": "REPAIR",
+        "operation": "振动筛筛布破损，更换筛布",
+        "npt_category": "equipment"
+      }
+    ],
+    "npt_hours": 1.0,
+    "npt_events": [
+      {
+        "operation": "振动筛筛布破损，更换筛布",
+        "hours": 1.0,
+        "code": "REPAIR",
+        "npt_category": "equipment",
+        "npt_responsibility": "contractor"
+      }
+    ],
+    "connections": [],
+    "connection_count": 0,
+    "mud": {
+      "density_gcc": 1.13,
+      "funnel_viscosity_s": 57.0,
+      "fl_ml": 3.1
+    },
+    "hole_diameter_in": 12.25,
+    "etim_spud_days": 16.4,
+    "well_status": "下套管固井",
+    "dtim_spud": "2026-02-25T08:00:00+08:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:30 钻进至 2696.85 m，钻压 135 kN，转速 151 rpm，排量 36 L/s，钻时 12.1 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "08:00",
+        "text": "08:30 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "11:00",
+        "text": "11:15 循环调整泥浆性能，密度提至 1.13 g/cm3，漏斗粘度 55 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "14:00",
+        "text": "14:00 起钻至 2697.37 m，期间无遇卡显示。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "17:00",
+        "text": "17:30 安全检查：井控装备完好，防喷器控制系统压力正常。"
+      },
+      {
+        "seq": 6,
+        "time_hint": "20:00",
+        "text": "20:30 地质录井汇报：岩性为灰色细砂岩，荧光显示 3 级。"
+      }
+    ],
+    "phase": "casing",
+    "template_id": "iadc_classic",
+    "unit_system": "metric"
+  }
+}

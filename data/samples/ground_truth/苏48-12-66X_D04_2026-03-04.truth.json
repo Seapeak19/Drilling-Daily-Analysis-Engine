@@ -1,0 +1,195 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "cn_vertical",
+  "source_file": "samples/苏48-12-66X_D04_2026-03-04.pdf",
+  "well_name": "苏 48-12-66X",
+  "operator": "长庆油田分公司",
+  "contractor": "川庆钻探工程有限公司",
+  "rig": "川庆 5060",
+  "field": "苏里格",
+  "report_date": "2026-03-04",
+  "truth": {
+    "report_date": "2026-03-04",
+    "report_no": 4,
+    "md_m": 2598.87,
+    "md_in_start_m": 2544.96,
+    "tvd_m": 2381.34,
+    "progress_m": 53.91,
+    "etim_drill_h": 7.5,
+    "rop_av_m_per_h": 7.19,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 11.4,
+        "code": "TRIP_IN",
+        "operation": "下钻（下立柱）",
+        "npt_category": null
+      },
+      {
+        "hours": 1.1,
+        "code": "CIRCULATE",
+        "operation": "循环洗井，恢复泥浆性能",
+        "npt_category": null
+      },
+      {
+        "hours": 6.3,
+        "code": "DRILL",
+        "operation": "旋转钻进 8.5″ 井段（恢复钻进）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 1.0,
+        "code": "TRIP_OUT",
+        "operation": "短起下检查井眼",
+        "npt_category": null
+      },
+      {
+        "hours": 3.0,
+        "code": "REPAIR",
+        "operation": "1 号泥浆泵活塞刺漏，更换缸套与活塞",
+        "npt_category": "equipment"
+      }
+    ],
+    "npt_hours": 3.0,
+    "npt_events": [
+      {
+        "operation": "1 号泥浆泵活塞刺漏，更换缸套与活塞",
+        "hours": 3.0,
+        "code": "REPAIR",
+        "npt_category": "equipment",
+        "npt_responsibility": "contractor"
+      }
+    ],
+    "connections": [
+      {
+        "seq": 1,
+        "shift": "day",
+        "minutes": 9.1,
+        "hours": 0.2,
+        "start": "18:48",
+        "end": "19:00"
+      },
+      {
+        "seq": 2,
+        "shift": "night",
+        "minutes": 11.0,
+        "hours": 0.2,
+        "start": "19:00",
+        "end": "19:12"
+      },
+      {
+        "seq": 3,
+        "shift": "day",
+        "minutes": 9.2,
+        "hours": 0.2,
+        "start": "19:12",
+        "end": "19:24"
+      },
+      {
+        "seq": 4,
+        "shift": "night",
+        "minutes": 12.7,
+        "hours": 0.2,
+        "start": "19:24",
+        "end": "19:36"
+      },
+      {
+        "seq": 5,
+        "shift": "day",
+        "minutes": 9.8,
+        "hours": 0.2,
+        "start": "19:36",
+        "end": "19:48"
+      },
+      {
+        "seq": 6,
+        "shift": "night",
+        "minutes": 11.1,
+        "hours": 0.2,
+        "start": "19:48",
+        "end": "20:00"
+      }
+    ],
+    "connection_count": 6,
+    "mud": {
+      "density_gcc": 1.29,
+      "funnel_viscosity_s": 50.0,
+      "fl_ml": 3.5
+    },
+    "hole_diameter_in": 8.5,
+    "etim_spud_days": 15.9,
+    "well_status": "下钻",
+    "dtim_spud": "2026-02-20T08:00:00+08:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:45 钻进至 2575.33 m，钻压 92 kN，转速 124 rpm，排量 29 L/s，钻时 15.6 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "09:00",
+        "text": "09:45 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "12:00",
+        "text": "12:00 循环调整泥浆性能，密度提至 1.13 g/cm3，漏斗粘度 41 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "14:00",
+        "text": "14:30 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "16:00",
+        "text": "16:45 地质录井汇报：岩性为灰色细砂岩，荧光显示 3 级。"
+      },
+      {
+        "seq": 6,
+        "time_hint": "19:00",
+        "text": "19:15 接单根，耗时 12 分钟。"
+      }
+    ],
+    "phase": "trip_in",
+    "template_id": "cn_vertical",
+    "unit_system": "metric"
+  }
+}

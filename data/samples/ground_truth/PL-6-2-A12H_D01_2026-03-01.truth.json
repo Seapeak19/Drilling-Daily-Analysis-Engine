@@ -1,0 +1,237 @@
+{
+  "_disclaimer": "合成数据 ground truth，仅用于评测解析器，不代表真实井数据。",
+  "template_id": "cn_vertical",
+  "source_file": "samples/PL-6-2-A12H_D01_2026-03-01.pdf",
+  "well_name": "PL-6-2-A12H",
+  "operator": "中海石油（中国）有限公司天津分公司",
+  "contractor": "中海油田服务股份有限公司",
+  "rig": "海洋石油 942",
+  "field": "蓬莱 19-3",
+  "report_date": "2026-03-01",
+  "truth": {
+    "report_date": "2026-03-01",
+    "report_no": 1,
+    "md_m": 2130.36,
+    "md_in_start_m": 2048.56,
+    "tvd_m": 1840.87,
+    "progress_m": 81.8,
+    "etim_drill_h": 9.2,
+    "rop_av_m_per_h": 8.89,
+    "sum_hours": 24.0,
+    "time_log": [
+      {
+        "hours": 6.5,
+        "code": "BOP",
+        "operation": "安装井口与防喷器",
+        "npt_category": null
+      },
+      {
+        "hours": 2.3,
+        "code": "TEST",
+        "operation": "防喷器功能试验与试压",
+        "npt_category": null
+      },
+      {
+        "hours": 2.0,
+        "code": "MUD_COND",
+        "operation": "建立循环、配浆",
+        "npt_category": null
+      },
+      {
+        "hours": 7.4,
+        "code": "DRILL",
+        "operation": "表层钻进（444.5 mm 井眼）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（夜班）",
+        "npt_category": null
+      },
+      {
+        "hours": 0.2,
+        "code": "DRILL",
+        "operation": "接单根（白班）",
+        "npt_category": null
+      },
+      {
+        "hours": 4.0,
+        "code": "STUCK",
+        "operation": "井漏，配置堵漏浆堵漏",
+        "npt_category": "wellbore"
+      }
+    ],
+    "npt_hours": 4.0,
+    "npt_events": [
+      {
+        "operation": "井漏，配置堵漏浆堵漏",
+        "hours": 4.0,
+        "code": "STUCK",
+        "npt_category": "wellbore",
+        "npt_responsibility": "operator"
+      }
+    ],
+    "connections": [
+      {
+        "seq": 1,
+        "shift": "day",
+        "minutes": 11.1,
+        "hours": 0.2,
+        "start": "18:12",
+        "end": "18:24"
+      },
+      {
+        "seq": 2,
+        "shift": "night",
+        "minutes": 12.3,
+        "hours": 0.2,
+        "start": "18:24",
+        "end": "18:36"
+      },
+      {
+        "seq": 3,
+        "shift": "day",
+        "minutes": 9.9,
+        "hours": 0.2,
+        "start": "18:36",
+        "end": "18:48"
+      },
+      {
+        "seq": 4,
+        "shift": "night",
+        "minutes": 12.4,
+        "hours": 0.2,
+        "start": "18:48",
+        "end": "19:00"
+      },
+      {
+        "seq": 5,
+        "shift": "day",
+        "minutes": 9.2,
+        "hours": 0.2,
+        "start": "19:00",
+        "end": "19:12"
+      },
+      {
+        "seq": 6,
+        "shift": "night",
+        "minutes": 12.5,
+        "hours": 0.2,
+        "start": "19:12",
+        "end": "19:24"
+      },
+      {
+        "seq": 7,
+        "shift": "day",
+        "minutes": 10.3,
+        "hours": 0.2,
+        "start": "19:24",
+        "end": "19:36"
+      },
+      {
+        "seq": 8,
+        "shift": "night",
+        "minutes": 13.4,
+        "hours": 0.2,
+        "start": "19:36",
+        "end": "19:48"
+      },
+      {
+        "seq": 9,
+        "shift": "day",
+        "minutes": 9.0,
+        "hours": 0.2,
+        "start": "19:48",
+        "end": "20:00"
+      }
+    ],
+    "connection_count": 9,
+    "mud": {
+      "density_gcc": 1.09,
+      "funnel_viscosity_s": 38.0,
+      "fl_ml": 4.7
+    },
+    "hole_diameter_in": 17.5,
+    "etim_spud_days": 10.4,
+    "well_status": "表层作业",
+    "dtim_spud": "2026-02-19T08:00:00+08:00",
+    "remarks": [
+      {
+        "seq": 1,
+        "time_hint": "06:00",
+        "text": "06:30 钻进至 2066.06 m，钻压 80 kN，转速 166 rpm，排量 36 L/s，钻时 15.8 m/h。"
+      },
+      {
+        "seq": 2,
+        "time_hint": "09:00",
+        "text": "09:15 接单根，耗时 12 分钟。"
+      },
+      {
+        "seq": 3,
+        "time_hint": "11:00",
+        "text": "11:45 循环调整泥浆性能，密度提至 1.13 g/cm3，漏斗粘度 40 s。"
+      },
+      {
+        "seq": 4,
+        "time_hint": "14:00",
+        "text": "14:30 地质录井汇报：岩性为灰色细砂岩，荧光显示 1 级。"
+      },
+      {
+        "seq": 5,
+        "time_hint": "16:00",
+        "text": "16:15 循环调整泥浆性能，密度提至 1.17 g/cm3，漏斗粘度 58 s。"
+      },
+      {
+        "seq": 6,
+        "time_hint": "18:00",
+        "text": "18:45 钻进至 2075.48 m，钻压 125 kN，转速 131 rpm，排量 34 L/s，钻时 8.7 m/h。"
+      }
+    ],
+    "phase": "surface",
+    "template_id": "cn_vertical",
+    "unit_system": "metric"
+  }
+}
