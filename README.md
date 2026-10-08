@@ -28,24 +28,52 @@
 
 ## 30 秒上手
 
+样本日报与 ground truth **已随仓库提供**，克隆下来即可直接跑评测，
+不需要先自己造数据：
+
 ```bash
 # 1. 环境（Python 3.10+）
 pip install -e ".[all]"
 
-# 2. 生成合成日报样本（PDF/Excel）与 ground truth
-python -m ddr.render --out data/samples
+# 2. 直接跑评测与鲁棒性测试（用仓库内的样本）
+python -m ddr.cli eval  --data data/samples
+python -m ddr.cli robust
+python -m ddr.cli stats --data data/samples     # 看这批样本覆盖了什么
+pytest tests -q
 
 # 3. 解析一份日报 → 标准化 JSON + 时效分解图
 python -m ddr.cli parse data/samples/samples/PL-6-2-A12H_D01_2026-03-01.pdf \
     --summary --chart out/时效分解.html --csv out/时间分解.csv
-
-# 4. 跑评测与鲁棒性测试
-python -m ddr.cli eval  --data data/samples
-python -m ddr.cli robust
-pytest tests -q
 ```
 
-安装为包之后可以直接用 `ddr` 命令：`ddr parse ...`、`ddr eval ...`。
+如需重新生成样本（改了模拟器或模板之后）：
+
+```bash
+python -m ddr.render --out data/samples
+```
+
+安装为包之后可以直接用 `ddr` 命令：`ddr parse ...`、`ddr stats ...`、`ddr eval ...`。
+
+### 仓库里的样本是什么
+
+`data/samples/` 含 **21 份日报（PDF/Excel）+ 21 份 ground truth**，
+覆盖 3 口虚构井 × 7 天，工况含表层作业、钻进、起钻、下钻、下套管固井，
+格式含三种模板、公制与英制混用。`ddr stats` 会打印完整覆盖情况，摘要：
+
+| 指标 | 值 |
+|---|---|
+| 样本 / 井 / 日期 | 21 份 / 3 口 / 2026-03-01 ~ 03-07 |
+| 模板覆盖 | cn_vertical 6、iadc_classic 9、regional_xls 6 |
+| 24 小时合规率 | 21/21（100%） |
+| 时间分布 | 有效生产 32.6%、Flat Time 56.6%、NPT 10.7% |
+| NPT 覆盖 | 18/21 份日报含 NPT，合计 54.0 h |
+| ILT 基础 | 接单根 218 次，分布在 12/21 份日报 |
+| 区块覆盖 | 泥浆 21/21、钻头记录 6/21、备注 135 条 |
+
+> **注意 NPT 率 10.7% 低于行业基准 20%–25%**。这是样本的已知偏差：
+> 合成数据按"每天至多注入少量 NPT 事件"构造，未模拟长时间停工的极端工况。
+> 因此这批样本适合验证**解析与时效分解逻辑**，不适合用来标定 NPT 率的行业基准。
+> 钻头记录只有 6/21 份，同样意味着"钻头性能对标"不能靠这批样本验证。
 
 ### 输出长什么样
 
@@ -144,10 +172,29 @@ pytest tests -q
 │   ├── evaluate.py     # 分字段准确率评测
 │   └── robustness.py   # 畸形日报行为契约测试
 ├── skill/ddr-parse/    # Skill 壳（对话式入口）
-├── data/samples/       # 合成样本 + ground truth + 两份报告
+├── data/samples/       # 已入库：21 份样本 + ground truth + 两份报告
+│   ├── samples/        #   15 份 PDF + 6 份 XLSX（三种模板）
+│   ├── ground_truth/   #   21 份 .truth.json（答案）
+│   ├── manifest.json   #   样本索引（评测与 stats 都读它）
+│   ├── dataset.json    #   模拟器原始输出（含 ILT 接单根明细）
+│   ├── evaluation_report.md
+│   └── robustness_report.md
 ├── docs/格式适配指南.md
-└── tests/              # 198 项单元与端到端测试
+└── tests/              # 210 项单元与端到端测试
 ```
+
+## 常用命令一览
+
+| 命令 | 作用 |
+|---|---|
+| `ddr parse <文件> --summary` | 解析单份日报并给出时效结论 |
+| `ddr parse <文件> --chart out/x.html --csv out/x.csv` | 同时出图与表 |
+| `ddr batch <目录> --out out/parsed` | 批量解析（跨日报接续井深） |
+| `ddr stats --data data/samples` | 数据集特征统计（覆盖范围、合规率、字段可用率） |
+| `ddr check --data data/samples/dataset.json` | 校验 ground truth 与日报内容是否一致 |
+| `ddr eval --data data/samples` | 跑评测出分字段准确率报告 |
+| `ddr robust` | 跑畸形日报行为契约测试 |
+| `ddr info` | 打印支持的模板与操作码字典 |
 
 ---
 
