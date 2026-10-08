@@ -1,0 +1,237 @@
+{
+  "_comment": "时间编码归一映射表。左列是日报里可能出现的中英文/缩写写法，右列是归一化操作码。新增格式时只需在此追加映射，无需改代码。",
+  "_categories": {
+    "productive": "有效生产时间：直接推进钻井目标的作业",
+    "flat": "Flat Time 计划内非钻进时间：起下钻、下套管等，不计入 NPT",
+    "npt": "NPT 非生产时间：非计划停工"
+  },
+  "codes": {
+    "DRILL": {
+      "label_zh": "钻进",
+      "label_en": "Drilling",
+      "default_category": "productive",
+      "is_ilt_candidate": true,
+      "ilt_action": "connection",
+      "aliases": ["旋转钻进", "定向钻进", "滑动钻进", "钻进（旋转）", "表层钻进", "钻进至", "钻进", "接单根", "接立柱", "接钻杆", "鼠洞接单根", "make up connection", "make a connection", "connection", "drilling", "drill ahead", "rotary drilling", "rotary drill", "drill", "drlg", "drl", "directional drilling", "slide drilling", "drilling ahead"]
+    },
+    "REAM": {
+      "label_zh": "扩眼/划眼",
+      "label_en": "Reaming",
+      "default_category": "productive",
+      "is_ilt_candidate": true,
+      "ilt_action": "ream_cycle",
+      "aliases": ["扩眼", "划眼", "倒划眼", "reaming", "ream", "ream up", "ream down", "back reaming", "backreaming", "rmg", "wiper trip"]
+    },
+    "TRIP_IN": {
+      "label_zh": "下钻",
+      "label_en": "Trip In",
+      "default_category": "flat",
+      "is_ilt_candidate": true,
+      "ilt_action": "trip_stand",
+      "aliases": ["下钻", "trip in", "tripping in", "ti", "rih", "run in hole", "rih to", "下钻具", "下钻（含通井）"]
+    },
+    "TRIP_OUT": {
+      "label_zh": "起钻",
+      "label_en": "Trip Out",
+      "default_category": "flat",
+      "is_ilt_candidate": true,
+      "ilt_action": "trip_stand",
+      "aliases": ["起钻", "trip out", "tripping out", "to", "pooh", "pull out of hole", "起钻具", "短起下", "short trip"]
+    },
+    "CASING": {
+      "label_zh": "下套管",
+      "label_en": "Casing",
+      "default_category": "flat",
+      "aliases": ["下套管", "casing", "run casing", "csg", "liner", "下尾管", "run liner", "casing running", "下套管作业"]
+    },
+    "CEMENT": {
+      "label_zh": "固井",
+      "label_en": "Cementing",
+      "default_category": "flat",
+      "aliases": ["固井", "注水泥", "cementing", "cement", "cmt", "挤水泥", "squeeze cement", "候凝", "woc", "wait on cement", "固井作业"]
+    },
+    "BOP": {
+      "label_zh": "防喷器作业",
+      "label_en": "BOP Operations",
+      "default_category": "flat",
+      "aliases": ["bop", "防喷器", "bop 作业", "bop test", "防喷器试压", "bop 试压", "nipple up", "安装井口", "wellhead", "井口安装"]
+    },
+    "MUD_COND": {
+      "label_zh": "泥浆处理",
+      "label_en": "Mud Conditioning",
+      "default_category": "flat",
+      "aliases": ["泥浆处理", "调整泥浆", "泥浆维护", "泥浆加重", "mud conditioning", "condition mud", "mud treatment", "配制泥浆", "配浆", "mixing mud", "weight up", "mud weight up", "处理泥浆"]
+    },
+    "CIRCULATE": {
+      "label_zh": "循环/洗井",
+      "label_en": "Circulating",
+      "default_category": "flat",
+      "is_ilt_candidate": true,
+      "ilt_action": "circulate_cycle",
+      "aliases": ["循环洗井", "洗井循环", "循环调整泥浆性能", "循环观察", "循环返出", "循环排气", "循环", "洗井", "建立循环", "恢复泥浆性能", "circulate bottom up", "circulating", "circulate", "circ", "bottom up"]
+    },
+    "LOGGING": {
+      "label_zh": "测井",
+      "label_en": "Logging",
+      "default_category": "flat",
+      "aliases": ["测井", "电测", "logging", "log", "mwd 测斜", "wireline", "电缆测井", "lwd", "测斜", "survey", "陀螺测斜", "gyro survey", "取心", "coring", "core"]
+    },
+    "TEST": {
+      "label_zh": "试压/测试",
+      "label_en": "Testing",
+      "default_category": "flat",
+      "aliases": ["防喷器功能试验与试压", "安全检查与井控装备检查", "防喷器功能试验", "防喷器试压", "bop 试压", "bop test", "功能测试与试压", "功能试验", "试压作业", "套管试压", "地层破裂试验", "泄漏试验", "功能测试", "pressure test", "function test", "leak off test", "fit test", "试压", "测试", "test", "fit", "lot"]
+    },
+    "COMPLETION": {
+      "label_zh": "完井作业",
+      "label_en": "Completion",
+      "default_category": "productive",
+      "aliases": ["完井", "completion", "射孔", "perforating", "perforation", "下油管", "tubing", "完井作业"]
+    },
+    "RIG_UP": {
+      "label_zh": "设备安装/搬迁安装",
+      "label_en": "Rig Up",
+      "default_category": "flat",
+      "aliases": ["安装", "设备安装", "rig up", "rigup", "搬迁安装", "组装", "rig up bop", "接管线", "安装管线"]
+    },
+    "RIG_DOWN": {
+      "label_zh": "设备拆卸",
+      "label_en": "Rig Down",
+      "default_category": "flat",
+      "aliases": ["拆卸", "拆设备", "rig down", "rigdown", "甩钻具", "lay down", "拆管线"]
+    },
+    "MOVE": {
+      "label_zh": "搬迁/移井架",
+      "label_en": "Moving",
+      "default_category": "flat",
+      "aliases": ["搬迁", "移井架", "moving", "move", "rig move", "拖航", "jack up", "就位"]
+    },
+    "WAIT": {
+      "label_zh": "等指令/等待",
+      "label_en": "Waiting",
+      "default_category": "flat",
+      "aliases": ["等指令", "等待", "waiting", "wait on", "wait", "等甲方", "等天气好转", "waiting on orders", "woo", "等设计", "等器材"]
+    },
+    "REPAIR": {
+      "label_zh": "修理（非计划）",
+      "label_en": "Repair (unplanned)",
+      "default_category": "npt",
+      "npt_category": "equipment",
+      "aliases": ["修理", "维修", "抢修", "故障处理", "设备故障", "设备抢修", "顶驱故障", "泥浆泵故障", "vfd 故障", "刺漏", "更换缸套", "更换活塞", "更换液压马达", "更换刹车块", "更换筛布", "更换钻杆", "降负荷检修", "水温高", "扭矩不足", "活塞刺漏", "repair", "repairs", "troubleshoot", "equipment failure", "breakdown", "down for repair", "downtime", "washout", "pump failure", "replace"]
+    },
+    "BIT_CHANGE": {
+      "label_zh": "更换钻头（计划内）",
+      "label_en": "Bit Change (planned)",
+      "default_category": "flat",
+      "aliases": ["更换钻头", "换钻头", "bit change", "change bit", "change out bit", "bit trip", "起钻换钻头", "更换钻具", "检查钻具", "钻具检查", "检查井下工具", "inspect drillstring", "lay down bit", "检查并更换钻头"]
+    },
+    "FISH": {
+      "label_zh": "打捞",
+      "label_en": "Fishing",
+      "default_category": "npt",
+      "npt_category": "wellbore",
+      "aliases": ["打捞", "fishing", "fish", "捞筒", "打捞作业", "落鱼", "fish in hole"]
+    },
+    "STUCK": {
+      "label_zh": "卡钻/解卡",
+      "label_en": "Stuck Pipe",
+      "default_category": "npt",
+      "npt_category": "wellbore",
+      "aliases": ["卡钻", "解卡", "stuck pipe", "stuck", "free pipe", "解卡作业", "遇卡", "压差卡钻", "differential sticking", "坍塌", "掉块", "wellbore collapse", "井漏", "lost circulation", "堵漏"]
+    },
+    "WELL_CONTROL": {
+      "label_zh": "井控作业",
+      "label_en": "Well Control",
+      "default_category": "npt",
+      "npt_category": "wellbore",
+      "aliases": ["井控", "well control", "溢流", "kick", "井涌", "关井", "shut in", "压井", "kill well", "well kill", "气侵", "gas cut"]
+    },
+    "WEATHER": {
+      "label_zh": "恶劣天气",
+      "label_en": "Weather",
+      "default_category": "npt",
+      "npt_category": "weather",
+      "aliases": ["恶劣天气", "weather", "台风", "typhoon", "大风", "high wind", "海况", "storm", "暴雨", "等天气", "weather downtime", "涌浪", "swell"]
+    },
+    "SAFETY": {
+      "label_zh": "安全事件（非计划）",
+      "label_en": "Safety Incident",
+      "default_category": "npt",
+      "npt_category": "safety",
+      "aliases": ["安全事件", "人员受伤", "事故发生", "safety stand down", "safety incident", "accident", "injury", "hse 事件"]
+    },
+    "SAFETY_CHECK": {
+      "label_zh": "安全检查/演练（计划内）",
+      "label_en": "Safety Check / Drill (planned)",
+      "default_category": "flat",
+      "aliases": ["安全检查与井控装备检查", "安全检查", "井控装备检查", "安全会议", "应急演练", "消防演练", "safety meeting", "safety drill", "safety check", "hse 检查", "hse inspection"]
+    },
+    "OTHER": {
+      "label_zh": "其他作业",
+      "label_en": "Other",
+      "default_category": "flat",
+      "aliases": ["其他", "other", "杂项", "misc", "miscellaneous"]
+    },
+    "UNKNOWN": {
+      "label_zh": "未识别",
+      "label_en": "Unknown",
+      "default_category": "flat",
+      "aliases": []
+    }
+  },
+  "npt_categories": {
+    "equipment": "设备故障（顶驱/泥浆泵/绞车/发电机组/井控设备等）",
+    "wellbore": "井下复杂（卡钻/井漏/溢流/坍塌/打捞）",
+    "weather": "恶劣天气",
+    "logistics": "等料/物流/等指令",
+    "third_party": "第三方服务延误（测井/固井/定向井服务商）",
+    "safety": "安全事件与停工",
+    "other": "其他"
+  },
+  "npt_responsibilities": {
+    "contractor": "钻井承包商责任",
+    "operator": "作业者责任",
+    "third_party": "第三方责任",
+    "force_majeure": "不可抗力",
+    "undetermined": "待定"
+  },
+  "ilt_actions": {
+    "connection": "接单根（含接立柱）",
+    "trip_stand": "起下钻立柱",
+    "ream_cycle": "划眼循环",
+    "circulate_cycle": "循环洗井"
+  },
+  "ilt_keywords": {
+    "connection": ["接单根", "接立柱", "connection", "make up connection", "single", "接钻杆", "接单根作业", "mouse hole", "鼠洞接单根"],
+    "trip_stand": ["起立柱", "下立柱", "stand", "立柱"],
+    "ream_cycle": ["划眼", "扩眼"],
+    "circulate_cycle": ["循环", "洗井"]
+  },
+  "unit_aliases": {
+    "m": ["m", "米", "meter", "metre", "meters"],
+    "ft": ["ft", "英尺", "feet", "foot"],
+    "in": ["in", "英寸", "inch", "\"", "inches"],
+    "mm": ["mm", "毫米"],
+    "kgf": ["kgf", "公斤力", "kg"],
+    "kn": ["kn", "千牛", "kilonewton"],
+    "lbf": ["lbf", "磅力", "lb", "lbs", "klbs", "kips", "kip"],
+    "knm": ["kn·m", "knm", "千牛米"],
+    "ftlbf": ["ft-lbf", "ft·lb", "ftlb", "英尺磅"],
+    "gcc": ["g/cm3", "g/cc", "gcc", "克/立方厘米", "sg"],
+    "ppg": ["ppg", "lb/gal", "磅/加仑"],
+    "mpas": ["mpa·s", "mpas", "cp", "厘泊"],
+    "pa": ["pa", "帕"],
+    "psi": ["psi", "磅/平方英寸"],
+    "kpa": ["kpa", "千帕"],
+    "lps": ["l/s", "lps", "升/秒"],
+    "gpm": ["gpm", "加仑/分"],
+    "mm": ["mm", "毫米"],
+    "m3": ["m3", "m³", "方", "立方米"],
+    "bbl": ["bbl", "桶"],
+    "c": ["°c", "c", "℃", "摄氏"],
+    "f": ["°f", "f", "℉", "华氏"],
+    "s": ["s", "sec", "秒", "second"],
+    "min": ["min", "分钟", "minutes"],
+    "h": ["h", "hr", "hrs", "小时", "hour", "hours"]
+  }
+}

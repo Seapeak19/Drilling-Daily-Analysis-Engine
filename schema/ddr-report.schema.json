@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ddr-parser.local/schema/ddr-report.schema.json",
+  "title": "DDR Normalized Daily Drilling Report",
+  "description": "钻井日报标准化数据模型。字段命名对齐 Energistics WITSML v2.0 DrillReport 对象模型，便于未来对接实时数据链路（如 Volve WITSML）。所有数值字段统一 SI/公制，原始值保留在 raw 字段中。",
+  "type": "object",
+  "required": ["schema_version", "source", "well", "report", "time_log", "time_verification"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "本数据模型版本号，与解析引擎版本解耦。",
+      "const": "1.0.0"
+    },
+    "source": {
+      "type": "object",
+      "description": "解析溯源信息。用于审计与置信度标注，不参与 KPI 计算。",
+      "required": ["file_name", "file_type", "parser", "parsed_at"],
+      "additionalProperties": false,
+      "properties": {
+        "file_name": { "type": "string" },
+        "file_type": { "type": "string", "enum": ["pdf", "xlsx", "xls", "image", "xml", "unknown"] },
+        "parser": { "type": "string", "description": "解析器标识，如 rule:iadc_standard@1.0.0" },
+        "parsed_at": { "type": "string", "format": "date-time" },
+        "template_id": { "type": ["string", "null"], "description": "命中的日报格式模板 ID；未识别为 null" },
+        "page_count": { "type": ["integer", "null"], "minimum": 0 },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "well": {
+      "type": "object",
+      "required": ["well_name"],
+      "additionalProperties": false,
+      "properties": {
+        "well_name": { "type": "string", "description": "WITSML Well/name" },
+        "wellbore_name": { "type": ["string", "null"], "description": "WITSML Wellbore/name" },
+        "api_number": { "type": ["string", "null"], "description": "WITSML Well/numAPI" },
+        "uwi": { "type": ["string", "null"], "description": "Unique Well Identifier（加拿大体系）" },
+        "operator": { "type": ["string", "null"], "description": "作业者 WITSML Well/operator" },
+        "contractor": { "type": ["string", "null"], "description": "钻井承包商" },
+        "rig": { "type": ["string", "null"], "description": "WITSML Well/rigName" },
+        "field": { "type": ["string", "null"], "description": "WITSML Well/field" },
+        "country": { "type": ["string", "null"], "description": "WITSML Well/country" },
+        "state": { "type": ["string", "null"] },
+        "county": { "type": ["string", "null"] },
+        "latitude": { "type": ["number", "null"], "minimum": -90, "maximum": 90 },
+        "longitude": { "type": ["number", "null"], "minimum": -180, "maximum": 180 },
+        "elevation_ground_m": { "type": ["number", "null"], "description": "WITSML Well/elevationGL" },
+        "elevation_kelly_bushing_m": { "type": ["number", "null"], "description": "WITSML Well/elevationKB" }
+      }
+    },
+    "report": {
+      "type": "object",
+      "required": ["dtim_start", "dtim_end", "md_m"],
+      "additionalProperties": false,
+      "properties": {
+        "report_no": { "type": ["integer", "null"], "description": "WITSML DrillReport/sequenceNo 报表序号" },
+        "report_type": { "type": ["string", "null"], "enum": ["DDR", "WDR", "FR", "other", null], "description": "DDR=钻井日报, WDR=完井日报, FR=终井报告" },
+        "dtim_start": { "type": "string", "format": "date-time", "description": "WITSML DrillReport/dTimStart 报告期起点（当地时区，含偏移）" },
+        "dtim_end": { "type": "string", "format": "date-time", "description": "WITSML DrillReport/dTimEnd 报告期终点" },
+        "md_m": { "type": "number", "minimum": 0, "description": "WITSML DrillReport/StatusInfo/md 测量井深" },
+        "tvd_m": { "type": ["number", "null"], "minimum": 0, "description": "WITSML StatusInfo/tvd 垂深" },
+        "md_in_start_m": { "type": ["number", "null"], "minimum": 0, "description": "报告期起始井深（用于反推进尺）" },
+        "progress_m": { "type": ["number", "null"], "description": "当日进尺 = md_m - md_in_start_m" },
+        "hole_diameter_in": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "casing_diameter_in": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "dtim_spud": { "type": ["string", "null"], "format": "date-time", "description": "WITSML DrillReport/dTimSpud 开钻时间" },
+        "etim_spud_days": { "type": ["number", "null"], "minimum": 0, "description": "WITSML StatusInfo/etimSpud 开钻天数" },
+        "rop_av_m_per_h": { "type": ["number", "null"], "minimum": 0, "description": "WITSML StatusInfo/ropAv 平均机械钻速" },
+        "dist_drill_m": { "type": ["number", "null"], "description": "WITSML StatusInfo/distDrill 钻进进尺" },
+        "etim_drill_h": { "type": ["number", "null"], "minimum": 0, "description": "WITSML StatusInfo/etimDrill 钻进时间(小时)" },
+        "etim_ream_h": { "type": ["number", "null"], "minimum": 0, "description": "WITSML StatusInfo/etimReam 扩眼时间(小时)" },
+        "well_status": { "type": ["string", "null"], "description": "井状态：Drilling / Tripping / Casing / Completing / Suspended 等" },
+        "status_comment": { "type": ["string", "null"] },
+        "sum_24hr": { "type": ["string", "null"], "description": "WITSML DrillReport/StatusInfo/sum24Hr 24小时作业摘要（原文）" },
+        "plan_24hr": { "type": ["string", "null"], "description": "未来 24 小时计划（原文）" },
+        "day_number": { "type": ["integer", "null"], "minimum": 0, "description": "自开钻起第几天（报表口径）" },
+        "unit_system": { "type": "string", "enum": ["metric", "imperial", "mixed", "unknown"], "default": "unknown", "description": "日报原始单位制；输出一律归一为 SI" }
+      }
+    },
+    "time_log": {
+      "type": "array",
+      "description": "时间分解（WITSML DrillReport/Activity 序列的扩展表示）。硬约束：所有条目 hours 之和必须等于报告期小时数（标准 24.00），容差 ±0.01。",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["hours", "code", "category", "is_npt"],
+        "additionalProperties": false,
+        "properties": {
+          "start": { "type": ["string", "null"], "pattern": "^([01][0-9]|2[0-4]):[0-5][0-9]$", "description": "起始钟点 HH:MM，24:00 表示报告期终点" },
+          "end": { "type": ["string", "null"], "pattern": "^([01][0-9]|2[0-4]):[0-5][0-9]$" },
+          "hours": { "type": "number", "minimum": 0, "description": "该条目历时（小时），保留 2 位小数" },
+          "code": {
+            "type": "string",
+            "description": "归一化操作码，取自 code-map.json；未识别编码为 UNKNOWN",
+            "enum": [
+              "DRILL", "REAM", "TRIP_IN", "TRIP_OUT", "CASING", "CEMENT", "BOP", "MUD_COND",
+              "CIRCULATE", "LOGGING", "TEST", "COMPLETION", "RIG_UP", "RIG_DOWN", "MOVE",
+              "WAIT", "REPAIR", "BIT_CHANGE", "FISH", "STUCK", "WELL_CONTROL", "WEATHER", "SAFETY", "SAFETY_CHECK", "OTHER", "UNKNOWN"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "enum": ["productive", "flat", "npt"],
+            "description": "时间类别。productive=有效生产时间，flat=计划内非钻进时间（不计 NPT），npt=非生产时间"
+          },
+          "operation": { "type": ["string", "null"], "description": "原始作业描述（原文，不翻译）" },
+          "is_npt": { "type": "boolean", "description": "是否非生产时间。与 category==npt 保持一致" },
+          "npt_category": {
+            "type": ["string", "null"],
+            "enum": ["equipment", "wellbore", "weather", "logistics", "third_party", "safety", "other", null],
+            "description": "NPT 归因大类：设备故障/井下复杂/天气/等料物流/第三方/安全/其他"
+          },
+          "npt_responsibility": {
+            "type": ["string", "null"],
+            "enum": ["contractor", "operator", "third_party", "force_majeure", "undetermined", null],
+            "description": "NPT 责任归属（合同争议关键字段）"
+          },
+          "is_ilt_candidate": { "type": "boolean", "default": false, "description": "是否 ILT（隐形损失时间）候选动作，如接单根、起下钻立柱" },
+          "ilt_action": {
+            "type": ["string", "null"],
+            "enum": ["connection", "trip_stand", "ream_cycle", "circulate_cycle", "other", null],
+            "description": "ILT 动作类型，供接单根耗时分布统计使用"
+          },
+          "duration_source": {
+            "type": "string",
+            "enum": ["reported", "derived_from_clock", "derived_from_total"],
+            "default": "reported",
+            "description": "时长来源：日报直接给出 / 由起止钟点推算 / 由 24h 差额补足"
+          }
+        }
+      }
+    },
+    "time_verification": {
+      "type": "object",
+      "description": "时间分解合规性校验结果——行业日报最易出错、最易被忽视的合规点。",
+      "required": ["sum_hours", "valid"],
+      "additionalProperties": false,
+      "properties": {
+        "expected_hours": { "type": "number", "default": 24.0, "description": "报告期应有小时数（通常 24.0）" },
+        "sum_hours": { "type": "number", "description": "时间条目实际加总" },
+        "delta_hours": { "type": "number", "description": "sum_hours - expected_hours" },
+        "tolerance_hours": { "type": "number", "default": 0.01 },
+        "valid": { "type": "boolean" },
+        "unaccounted_hours": { "type": ["number", "null"], "description": "日报未解释的缺口时长（补足为 UNKNOWN 之前的值）" },
+        "clock_continuity_ok": { "type": ["boolean", "null"], "description": "起止钟点是否首尾相接、无重叠无空洞" },
+        "overlap_hours": { "type": ["number", "null"], "description": "钟点重叠总时长（应为 0）" },
+        "messages": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "bit_records": {
+      "type": "array",
+      "description": "钻头记录 WITSML DrillReport/BitRecord。",
+      "items": {
+        "type": "object",
+        "required": ["bit_no"],
+        "additionalProperties": false,
+        "properties": {
+          "bit_no": { "type": "integer", "minimum": 1, "description": "本井第几只钻头（序号）" },
+          "size_in": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "钻头直径（英寸）" },
+          "make": { "type": ["string", "null"], "description": "制造商" },
+          "model": { "type": ["string", "null"], "description": "型号" },
+          "type": {
+            "type": ["string", "null"],
+            "enum": ["PDC", "TCI", "MILL_TOOTH", "DIAMOND", "CORE", "OTHER", null],
+            "description": "钻头类型"
+          },
+          "iadc_code": { "type": ["string", "null"], "description": "IADC 钻头分类码（如 M323）" },
+          "nozzles_32nds": { "type": ["string", "null"], "description": "水眼组合，如 3x12+1x13（1/32 英寸）" },
+          "depth_in_m": { "type": ["number", "null"], "minimum": 0 },
+          "depth_out_m": { "type": ["number", "null"], "minimum": 0 },
+          "footage_m": { "type": ["number", "null"], "minimum": 0, "description": "进尺" },
+          "hours": { "type": ["number", "null"], "minimum": 0, "description": "纯钻进使用时间" },
+          "rop_m_per_h": { "type": ["number", "null"], "minimum": 0 },
+          "wob_kgf": { "type": ["number", "null"], "minimum": 0, "description": "钻压（公斤力）" },
+          "rpm": { "type": ["number", "null"], "minimum": 0 },
+          "flow_lps": { "type": ["number", "null"], "minimum": 0, "description": "排量（升/秒）" },
+          "dull_grade": { "type": ["string", "null"], "description": "IADC 磨损分级码 8 位，如 2-3-WT-S-X-I-NO-TD" },
+          "dull_grade_parsed": {
+            "type": ["object", "null"],
+            "description": "磨损分级码结构化拆解（内圈/外圈磨损、轴承、特征、位置、原因）",
+            "additionalProperties": true,
+            "properties": {
+              "inner_wear": { "type": ["integer", "null"], "minimum": 0, "maximum": 8 },
+              "outer_wear": { "type": ["integer", "null"], "minimum": 0, "maximum": 8 },
+              "dull_char": { "type": ["string", "null"] },
+              "location": { "type": ["string", "null"] },
+              "bearing": { "type": ["string", "null"] },
+              "gauge": { "type": ["string", "null"] },
+              "other_char": { "type": ["string", "null"] },
+              "reason_pulled": { "type": ["string", "null"] }
+            }
+          },
+          "hours_source": { "type": ["string", "null"], "enum": ["reported", "derived", null] }
+        }
+      }
+    },
+    "mud": {
+      "type": "array",
+      "description": "泥浆性能 WITSML DrillReport/FluidsReport。",
+      "items": {
+        "type": "object",
+        "required": ["sample_point"],
+        "additionalProperties": false,
+        "properties": {
+          "sample_point": {
+            "type": "string",
+            "enum": ["flowline", "suction", "shaker", "pit", "other"],
+            "description": "取样点：出口/入口/振动筛/泥浆罐"
+          },
+          "depth_m": { "type": ["number", "null"], "minimum": 0 },
+          "density_gcc": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "密度 g/cm³" },
+          "funnel_viscosity_s": { "type": ["number", "null"], "minimum": 0, "description": "马氏漏斗粘度（秒）" },
+          "pv_mpas": { "type": ["number", "null"], "minimum": 0, "description": "塑性粘度" },
+          "yp_pa": { "type": ["number", "null"], "description": "动切力" },
+          "gel_10s_pa": { "type": ["number", "null"] },
+          "gel_10min_pa": { "type": ["number", "null"] },
+          "fl_ml": { "type": ["number", "null"], "minimum": 0, "description": "API 失水（毫升）" },
+          "ph": { "type": ["number", "null"], "minimum": 0, "maximum": 14 },
+          "chlorides_mg_l": { "type": ["number", "null"], "minimum": 0 },
+          "sand_pct": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "oil_water_ratio": { "type": ["string", "null"], "description": "油水比，如 80/20" },
+          "solids_pct": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+          "mud_type": { "type": ["string", "null"], "description": "泥浆体系，如 KCl-Polymer / SOBM" },
+          "volume_m3": { "type": ["number", "null"], "minimum": 0 },
+          "raw": { "type": ["object", "null"], "additionalProperties": true, "description": "未归一的原始读数" }
+        }
+      }
+    },
+    "remarks": {
+      "type": "array",
+      "description": "备注自然语言叙述，按时间顺序。文本类字段由 LLM 抽取为事件，数值字段强制走规则抽取。",
+      "items": {
+        "type": "object",
+        "required": ["seq", "text"],
+        "additionalProperties": false,
+        "properties": {
+          "seq": { "type": "integer", "minimum": 1 },
+          "time_hint": { "type": ["string", "null"], "description": "备注自带的时间标记 HH:MM" },
+          "text": { "type": "string" },
+          "extraction_method": { "type": "string", "enum": ["rule", "llm", "manual", "none"], "default": "none" },
+          "llm_confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "description": "由 Remarks 抽取的结构化事件。所有数值必须能在原文中定位（span 校验）。",
+      "items": {
+        "type": "object",
+        "required": ["event_type", "description", "source_remark_seq"],
+        "additionalProperties": false,
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "enum": ["npt", "equipment_failure", "wellbore_problem", "safety", "milestone", "instruction", "info", "other"]
+          },
+          "description": { "type": "string" },
+          "start": { "type": ["string", "null"] },
+          "end": { "type": ["string", "null"] },
+          "hours": { "type": ["number", "null"], "minimum": 0 },
+          "npt_category": { "type": ["string", "null"] },
+          "npt_responsibility": { "type": ["string", "null"] },
+          "source_remark_seq": { "type": "integer", "minimum": 1 },
+          "evidence_span": { "type": ["string", "null"], "description": "原文证据片段（必须逐字出现在 remark 原文中）" },
+          "extraction_method": { "type": "string", "enum": ["rule", "llm", "manual", "none"], "default": "none" },
+          "llm_confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "verified": { "type": "boolean", "default": false, "description": "是否通过数值 span 交叉校验" }
+        }
+      }
+    },
+    "bha": {
+      "type": ["array", "null"],
+      "description": "井底钻具组合 WITSML DrillReport/BHA Run（自下而上）。",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "seq": { "type": "integer", "minimum": 1 },
+          "component": { "type": "string" },
+          "od_in": { "type": ["number", "null"] },
+          "id_in": { "type": ["number", "null"] },
+          "length_m": { "type": ["number", "null"] },
+          "cum_length_m": { "type": ["number", "null"] }
+        }
+      }
+    },
+    "kpi": {
+      "type": ["object", "null"],
+      "description": "时效分解基础指标（M1 仅计算第一层；NPT 归因/ILT/对标留待分析引擎阶段）。",
+      "additionalProperties": false,
+      "properties": {
+        "productive_hours": { "type": ["number", "null"] },
+        "flat_hours": { "type": ["number", "null"] },
+        "npt_hours": { "type": ["number", "null"] },
+        "productive_pct": { "type": ["number", "null"] },
+        "flat_pct": { "type": ["number", "null"] },
+        "npt_pct": { "type": ["number", "null"], "description": "行业基准 20%–25%" },
+        "etim_drill_h": { "type": ["number", "null"] }
+      }
+    }
+  }
+}

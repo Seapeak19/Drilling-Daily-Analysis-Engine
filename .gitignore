@@ -1,0 +1,42 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- 项目产物 ----
+# 解析输出（可随时用 CLI 重新生成）
+out/
+# 临时预览图（仅开发时用于人工核验版式/图表）
+data/_preview/
+
+# 合成样本与 ground truth 体积较大且可完整复现：
+#   python -m ddr.render --out data/samples
+# 因此不入库。若你已用真实日报替换样本，请删掉下面几行并把样本纳入版本管理
+# —— 真实数据入库前必须先做脱敏（井名/公司名替换，见计划书 7.3）。
+data/samples/samples/
+data/samples/ground_truth/
+data/samples/dataset.json
+data/samples/manifest.json
+# 报告要入库（它们是成果证据），故不忽略 evaluation_report.md / robustness_report.md
+
+# ---- 编辑器/系统 ----
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini

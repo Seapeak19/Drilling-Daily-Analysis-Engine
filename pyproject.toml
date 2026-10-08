@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ddr-parser"
+version = "0.1.0"
+description = "钻井日报（DDR）解析与 KPI 看板 —— 解析引擎（M0/M1）"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "DDR Parser Project" }]
+keywords = ["drilling", "IADC", "DDR", "daily drilling report", "NPT", "ILT", "WITSML"]
+dependencies = [
+    "pdfplumber>=0.11",
+    "PyMuPDF>=1.24",
+    "pandas>=2.0",
+    "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+sample = ["reportlab>=4.0"]      # 仅生成合成样本时需要
+dash = ["plotly>=5.20"]          # 时效分解图与看板
+dev = ["pytest>=8.0", "jsonschema>=4.20"]
+all = ["reportlab>=4.0", "plotly>=5.20", "pytest>=8.0", "jsonschema>=4.20"]
+
+[project.scripts]
+ddr = "ddr.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+markers = ["slow: 端到端较慢的测试（渲染 PDF 样本）"]
