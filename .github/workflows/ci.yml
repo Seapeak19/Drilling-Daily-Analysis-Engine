@@ -2,12 +2,22 @@ name: CI
 
 # 为什么需要这个工作流
 # ----------------
-# `docs/格式适配指南.md` 第 6 节已经写明"改完任何一种格式，跑完这四条再提交"，
-# 但在本文件存在之前，这四条**全靠人工记忆**：
-#   1. pytest tests                 2. ddr check
-#   3. ddr eval（准确率不得下降）    4. ddr robust（鲁棒性不得回归）
+# `docs/格式适配指南.md` 第 6 节已经写明"改完任何一种格式，跑完这几条再提交"，
+# 但在本文件存在之前，这些检查**全靠人工记忆**：
+#   1. ddr privacy   2. pytest tests   3. ddr check
+#   4. ddr eval（准确率不得下降）        5. ddr robust（鲁棒性不得回归）
 # 任何一条被跳过，回归就会静默进入 main 并推送到 GitHub。
-# 这个工作流把那四行清单变成机器的责任。
+# 这个工作流把那份清单变成机器的责任。
+#
+# ⚠ 两个曾经踩过的坑（首次运行时全部任务失败，原因如下）
+# ----------------
+# 1. 中文 PDF 渲染需要系统 CJK 字体。ubuntu-latest 默认**不含**中文字体，
+#    render.py 的 _ensure_cjk_font() 会显式抛 FontUnavailableError —— 这是
+#    刻意设计的守卫（静默退回 Helvetica 会产出满屏方块的"看起来正常"的 PDF，
+#    比直接失败危险得多）。因此这里必须先 apt 安装字体，而不是绕过守卫。
+# 2. Python 版本下界必须与 constraints.txt 一致。numpy 2.3.5 与 pandas 3.0.1
+#    都要求 >=3.11，而本工作流原本测 3.10 —— 那一半 job 在 pip install
+#    阶段就挂了。现在 pyproject / constraints / 本文件三处统一为 3.11+。
 
 on:
   push:
@@ -22,9 +32,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 3.10 是 pyproject 声明的下界；3.12 是当前开发版本。
+        # 3.11 是 pyproject 声明的下界（受 numpy/pandas 约束），3.12 是当前开发版本。
         # 两端都测，避免用到下界不支持的新语法。
-        python-version: ["3.10", "3.12"]
+        python-version: ["3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +42,21 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      # 必须在装依赖**之前**——渲染测试一跑就需要字体
+      - name: 安装中文字体（PDF 渲染必需）
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk fonts-wqy-zenhei
+          fc-cache -f > /dev/null
+          echo "--- 确认字体已就位 ---"
+          # Ubuntu 24.04（noble）把该包装到 opentype/noto/，而不是旧版的 truetype/noto/。
+          # src/ddr/fonts.py 两个路径都列了；这里按同样的顺序校验。
+          ls -l /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc \
+            || ls -l /usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc \
+            || (echo "::error::未找到 NotoSansCJK-Regular.ttc，请更新 src/ddr/fonts.py 的候选路径" && exit 1)
+          echo "--- fontconfig 反查（引擎的第三条发现路径）---"
+          fc-match --format='%{file}\n' 'sans:lang=zh'
 
       - name: 安装依赖
         run: |
@@ -50,6 +75,11 @@ jobs:
       # ------------------------------------------------------------------
       - name: 私有数据闸门（真实日报不得入库）
         run: ddr privacy --data data/samples
+
+      # 提前确认字体真的被 ddr 认到 —— 否则会在 pytest 里以
+      # "渲染中文样本失败"的形式暴露，错误信息离根因更远
+      - name: 确认 CJK 字体可被引擎识别
+        run: python -c "from ddr.fonts import has_cjk_font; assert has_cjk_font(), 'CJK 字体未被识别'; print('CJK 字体可用')"
 
       - name: 单元 / 端到端 / 错误路径测试
         run: pytest tests -q
@@ -82,3 +112,29 @@ jobs:
             exit 1
           fi
           echo "工作区干净。"
+
+  # --------------------------------------------------------------------
+  # 无字体环境下的行为契约。
+  # 上面那个 job 装了字体，所以它**永远不会**覆盖"没有中文字体时怎么办"
+  # 这条路径。而那条路径的正确行为是"明确失败"，不是"静默产出方块 PDF"。
+  # 这里刻意不装字体，验证守卫仍然有效。
+  # --------------------------------------------------------------------
+  no-cjk-font-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安装依赖（不装中文字体）
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[all]" -c constraints.txt
+
+      - name: 无中文字体时必须显式失败，而不是产出方块 PDF
+        # 注意 -k 区分大小写，且必须限定到 TestNoCjkFontGuard：
+        # TestCjkFontAvailable（断言"能找到字体"）在无字体环境下必然失败，
+        # 不能被选进来，否则会把"守卫有效"的信号淹没在噪音里。
+        run: pytest tests/test_golden_sample.py -q -k "NoCjkFontGuard"

@@ -386,3 +386,125 @@ class TestGoldenIsNotVacuous:
             "1.21",             # 入口密度
         ):
             assert needle in text, f"渲染出的 PDF 里找不到 {needle!r} —— 渲染环节丢了信息"
+
+
+# --------------------------------------------------------------------- 字体守卫
+class TestNoCjkFontGuard:
+    """没有中文字体时必须**显式失败**，而不是产出满屏方块的 PDF。
+
+    ## 为什么单独锁这条路径
+
+    渲染中文日报需要系统提供 CJK 字体。CI 的 ubuntu-latest 默认**不含**
+    中文字体 —— 首次运行 CI 时全部任务失败，根因就在这里。
+
+    但真正危险的不是"失败"，而是"**不失败**"：reportlab 在找不到字体时会
+    静默退回 Helvetica，产出的是看起来生成成功、打开却是满屏方块的 PDF。
+    那种样本一旦混进评测集，评测出来的准确率将毫无意义，
+    而且错误会以"解析器读不到中文"的形式出现在离根因很远的地方。
+
+    所以这里锁定的是：**宁可抛异常，也不静默降级**。
+
+    > 维护提示：CI 里有一个不装字体的 job 专门跑这一条。
+    > 它保证"有字体"的主 job 不会掩盖这条路径的退化。
+    """
+
+    def _simulate_no_cjk_font(self, monkeypatch):
+        """把字体发现的**两条路径**都堵死，真实模拟"系统里没有中文字体"。
+
+        注意必须同时处理 fc-match：`fonts` 模块有静态候选列表和 fontconfig
+        反查两条发现路径，只清空静态列表的话，在装有中文字体的 Linux 上
+        fc-match 仍会找到字体，测试就测不到守卫了。
+        """
+        from ddr import fonts
+
+        monkeypatch.setattr(fonts, "FONT_CANDIDATES", [])
+        monkeypatch.setattr(fonts, "BOLD_CANDIDATES", [])
+        monkeypatch.setattr(fonts, "_fc_match_font", lambda: None)
+        self._clear_font_cache()
+
+    @staticmethod
+    def _clear_font_cache() -> None:
+        """清掉两个字体缓存。
+
+        为什么必须由 fixture 在**进入和退出时都清**：
+        `resolve_cjk_font` 带 lru_cache。测试里清一次缓存后，
+        被 monkeypatch 的"找不到字体"结果会被存进缓存；而 monkeypatch 是在
+        测试**结束之后**才还原的，此时若不再清一次，缓存里就永久留着
+        "系统没有中文字体"这个假结论，后续所有渲染测试都会莫名失败
+        （真实踩过的坑：22 个 e2e 测试集体报 FontUnavailableError）。
+        """
+        from ddr import fonts
+
+        fonts.resolve_cjk_font.cache_clear()
+        fonts.register_cjk_fonts.cache_clear()
+
+    @pytest.fixture(autouse=True)
+    def _isolate_font_state(self):
+        """保证本类的字体状态模拟不会泄漏到其它测试。"""
+        self._clear_font_cache()
+        yield
+        self._clear_font_cache()
+
+    def test_resolution_reports_no_font(self, monkeypatch):
+        """两条发现路径都堵死时，字体解析必须报告"找不到"。
+
+        断言的是 `resolve_cjk_font()` 而不是 `has_cjk_font()`：
+        后者在本进程内可能已被 `lru_cache` 固化，而前者每次真实解析，
+        因此这条测试不受运行顺序影响。
+        """
+        from ddr import fonts
+
+        self._simulate_no_cjk_font(monkeypatch)
+        assert fonts.resolve_cjk_font() == (None, None), "堵死两条路径后应解析不出字体"
+
+    def test_guard_raises_and_message_is_actionable(self, monkeypatch):
+        """找不到字体时，渲染守卫必须报错，且错误信息要能直接照做。"""
+        from ddr.render import FontUnavailableError, _ensure_cjk_font
+
+        self._simulate_no_cjk_font(monkeypatch)
+        with pytest.raises(FontUnavailableError) as ei:
+            _ensure_cjk_font()
+        msg = str(ei.value)
+        assert "字体" in msg, f"错误信息应说明是字体问题：{msg}"
+        assert "apt" in msg.lower() or "install" in msg.lower(), \
+            f"错误信息应给出安装指引（否则使用者只能去读源码）：{msg}"
+
+    def test_render_fails_loudly_without_cjk_font(self, tmp_path, monkeypatch):
+        """端到端：没有字体时渲染必须失败，且不留半成品 PDF。
+
+        这一条在"本进程此前已注册过 DDR-CJK"时会走注册表短路路径，
+        所以 CI 里另有一个**不装字体**的 job 专门跑它
+        （`.github/workflows/ci.yml` 的 no-cjk-font-guard），
+        那里是干净进程，能真实覆盖。
+        """
+        from ddr.render import FontUnavailableError
+
+        self._simulate_no_cjk_font(monkeypatch)
+        target = tmp_path / "partial.pdf"
+        with pytest.raises(FontUnavailableError):
+            render_cn_vertical(build_payload(), target)
+        assert not target.exists(), "失败后不应留下不完整的 PDF 文件"
+
+
+class TestCjkFontAvailable:
+    """反向哨兵：正常环境下必须能找到中文字体。
+
+    刻意与 `TestNoCjkFontGuard` **分开成两个类**，因为 CI 里有两个 job
+    需要精确区分：
+
+    - 主 job（装了字体）跑全部测试，包括这一条；
+    - `no-cjk-font-guard` job（不装字体）只跑 `-k "NoCjkFontGuard"`。
+
+    若两条测试同在一个类里，无字体 job 会把"应该找到字体"这条也选进去，
+    从而必然失败 —— 那会把"守卫有效"这个信号淹没在噪音里。
+
+    没有这一条的话，"找不到字体"的测试无法区分"守卫正确生效"
+    与"字体发现整个坏掉了"。
+    """
+
+    def test_font_is_found_in_normal_environment(self):
+        from ddr import fonts
+
+        regular, bold = fonts.resolve_cjk_font()
+        assert regular, "本机应能找到中文字体（CI 里由 apt 安装 fonts-noto-cjk 保证）"
+        assert bold, "本机应能找到粗体中文字体"

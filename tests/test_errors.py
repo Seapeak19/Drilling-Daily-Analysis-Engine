@@ -194,9 +194,15 @@ class TestFontGuard:
 
         from ddr import fonts, render
 
-        # 模拟"系统无中文字体"：清空候选 + 清缓存 + 从 reportlab 注册表移除已注册字体
+        # 模拟"系统无中文字体"：清空候选 + 清缓存 + 从 reportlab 注册表移除已注册字体。
+        # 注意必须同时堵住 fc-match 并清掉 resolve_cjk_font 的缓存 ——
+        # 字体的"发现"有静态候选与 fontconfig 反查两条路径，
+        # 只清候选的话，在装有中文字体的机器上仍会被判定为"有字体"，
+        # 这条测试就测不到守卫了（真实踩过的坑）。
         monkeypatch.setattr(fonts, "FONT_CANDIDATES", [])
         monkeypatch.setattr(fonts, "BOLD_CANDIDATES", [])
+        monkeypatch.setattr(fonts, "_fc_match_font", lambda: None)
+        fonts.resolve_cjk_font.cache_clear()
         fonts.register_cjk_fonts.cache_clear()
         for name in (fonts.REGULAR_NAME, fonts.BOLD_NAME):
             pdfmetrics._fonts.pop(name, None)
@@ -207,4 +213,5 @@ class TestFontGuard:
             assert "中文字体" in str(ei.value)
             assert "fonts-noto-cjk" in str(ei.value), "报错要给出可执行的安装命令"
         finally:
+            fonts.resolve_cjk_font.cache_clear()
             fonts.register_cjk_fonts.cache_clear()
