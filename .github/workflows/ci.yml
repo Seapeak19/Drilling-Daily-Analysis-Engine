@@ -82,7 +82,11 @@ jobs:
         run: python -c "from ddr.fonts import has_cjk_font; assert has_cjk_font(), 'CJK 字体未被识别'; print('CJK 字体可用')"
 
       - name: 单元 / 端到端 / 错误路径测试
-        run: pytest tests -q
+        run: |
+          echo "=== 运行环境 ==="
+          python -c "import sys, platform; print('Python', sys.version); print('平台', platform.platform())"
+          echo "=== 测试（失败时会在摘要里带出出错行）==="
+          pytest tests -q
 
       - name: 数据集 ground truth 自检
         run: ddr check --data data/samples/dataset.json
