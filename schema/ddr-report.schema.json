@@ -258,11 +258,24 @@
           "description": { "type": "string" },
           "start": { "type": ["string", "null"] },
           "end": { "type": ["string", "null"] },
-          "hours": { "type": ["number", "null"], "minimum": 0 },
-          "npt_category": { "type": ["string", "null"] },
-          "npt_responsibility": { "type": ["string", "null"] },
+          "hours": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "description": "该事件在备注中**明确叙述**的时长（小时）。只有两种写法会填值：① 数值 + 显式时长单位（2.5 小时 / 12 分钟）；② 时长语境词 + 数值 + 单位（耗时 12 分钟 / 停钻 4 小时）。其余一律为 null —— 包括备注开头的钟点（06:30 不是 6 小时）、井深/钻压等伴随数字。null 表示「备注未叙述时长」，不是 0。"
+          },
+          "npt_category": {
+            "type": ["string", "null"],
+            "description": "NPT 归因大类。仅当事件确实造成时间损失时填值。"
+          },
+          "npt_responsibility": {
+            "type": ["string", "null"],
+            "description": "NPT 责任归属（承包商/作业者/第三方/不可抗力）。⚠ 当前抽取器尚未实现该字段，解析结果恒为 null；不要据此判断「日报里没写」。"
+          },
           "source_remark_seq": { "type": "integer", "minimum": 1 },
-          "evidence_span": { "type": ["string", "null"], "description": "原文证据片段（必须逐字出现在 remark 原文中）" },
+          "evidence_span": {
+            "type": ["string", "null"],
+            "description": "原文证据片段，必须逐字出现在 remark 原文中，且**自带时长单位**。裸数字（如 '06'）不作为有效证据 —— 否则它会是 '06:30' 的子串而误判为「已验证」。"
+          },
           "extraction_method": { "type": "string", "enum": ["rule", "llm", "manual", "none"], "default": "none" },
           "llm_confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
           "verified": { "type": "boolean", "default": false, "description": "是否通过数值 span 交叉校验" }

@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from pathlib import Path
@@ -160,14 +161,24 @@ LOGISTICS_NPT: list[tuple[str, str, float, str, str]] = [
 ]
 
 REMARK_TEMPLATES = [
-    "{t} 钻进至 {md:.2f} m，钻压 {wob:.0f} kN，转速 {rpm:.0f} rpm，排量 {flow:.0f} L/s，钻时 {rop:.1f} m/h。",
-    "{t} 接单根，耗时 {conn:.0f} 分钟。",
-    "{t} 循环调整泥浆性能，密度提至 {dens:.2f} g/cm3，漏斗粘度 {vis:.0f} s。",
-    "{t} 起钻至 {md:.2f} m，期间无遇卡显示。",
-    "{t} 地质录井汇报：岩性为灰色细砂岩，荧光显示 {fluor} 级。",
-    "{t} 短起下检查井眼，返砂正常。",
-    "{t} 安全检查：井控装备完好，防喷器控制系统压力正常。",
+    "钻进至 {md:.2f} m，钻压 {wob:.0f} kN，转速 {rpm:.0f} rpm，排量 {flow:.0f} L/s，钻时 {rop:.1f} m/h。",
+    "接单根，耗时 {conn:.0f} 分钟。",
+    "循环调整泥浆性能，密度提至 {dens:.2f} g/cm3，漏斗粘度 {vis:.0f} s。",
+    "起钻至 {md:.2f} m，期间无遇卡显示。",
+    "地质录井汇报：岩性为灰色细砂岩，荧光显示 {fluor} 级。",
+    "短起下检查井眼，返砂正常。",
+    "安全检查：井控装备完好，防喷器控制系统压力正常。",
 ]
+
+# 备注里的钟点前缀（HH:MM）。钟点**只出现一次**：写在正文开头，
+# time_hint 由它派生 —— 而不是另写一个整点标签。
+#
+# 为什么必须这样：早期实现把钟点写了两遍（time_hint="06:00" 作为桶标签 +
+# 正文开头 "06:30" 作为真实时刻），渲染出 "06:00　06:30 钻进至…"。
+# 这不仅是观感问题——当时长抽取器去正文里找"时长"时，第一个匹配到的数字
+# 就是 06:30 里的 "06"，于是 135 条备注的 events[].hours 全部被污染。
+# 根因在数据生成端：同一信息写两遍，且两个值不一致（整点 vs 真实分钟）。
+_REMARK_CLOCK_RE = re.compile(r"^\s*([01]?\d|2[0-4]):([0-5]\d)\s+")
 
 SHIFTS = ("day", "night")
 
@@ -505,12 +516,13 @@ def simulate_well(
         ]
 
         # --- 备注
+        # 钟点写在正文开头，time_hint 由正文派生（两者必然一致，不会各写一个值）。
         remarks: list[dict[str, Any]] = []
         clock = 6
         for k in range(rng.randint(5, 8)):
             tpl = REMARK_TEMPLATES[k % 4] if k < 3 else rng.choice(REMARK_TEMPLATES)
-            txt = tpl.format(
-                t=f"{clock:02d}:{rng.choice(['00', '15', '30', '45'])}",
+            stamp = f"{clock:02d}:{rng.choice(['00', '15', '30', '45'])}"
+            body = tpl.format(
                 md=max(0.0, md - rng.uniform(0.0, max(footage, 1.0))),
                 wob=rng.uniform(60, 140),
                 rpm=rng.uniform(80, 180),
@@ -521,7 +533,16 @@ def simulate_well(
                 vis=rng.uniform(38, 58),
                 fluor=rng.choice(["1", "2", "3"]),
             )
-            remarks.append({"seq": k + 1, "time_hint": f"{clock:02d}:00", "text": txt})
+            txt = f"{stamp} {body}"
+            # time_hint 从正文派生，保证与正文里的钟点完全一致
+            m = _REMARK_CLOCK_RE.match(txt)
+            remarks.append(
+                {
+                    "seq": k + 1,
+                    "time_hint": f"{int(m.group(1)):02d}:{m.group(2)}" if m else None,
+                    "text": txt,
+                }
+            )
             clock += rng.randint(2, 3)
             if clock >= 24:
                 break

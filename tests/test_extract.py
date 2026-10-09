@@ -193,3 +193,74 @@ class TestTemplateSpecIntegrity:
         spec = TEMPLATE_SPECS["iadc_classic"]
         assert spec.header_unit_overrides.get("depth") == "m"
         assert spec.bit_unit_overrides.get("depth") == "m"
+
+
+# --------------------------------------------------------------------- 备注钟点
+class TestRemarkClockExtraction:
+    """备注钟点抽取的行为契约。
+
+    背景：早期样本把钟点写了两遍（`time_hint` 一个整点标签 + 正文一个真实时刻），
+    渲染成 "06:00　06:30 钻进至…"。第二个钟点残留在正文里，
+    被下游的时长抽取当成 "6 小时"，导致 events[].hours 被 100% 污染。
+
+    现在约定：**钟点只出现一次**（写在正文开头），`time_hint` 从正文派生。
+    这一组锁定抽取端的解析行为，确保：
+      1. 单个钟点 → hint 取真实分钟（不是截断到整点）；
+      2. 两个连续钟点（历史样本形态）→ 只取第一个，第二个必须被丢弃；
+      3. 正文里不得残留任何钟点。
+    """
+
+    @staticmethod
+    def _seg(lines: list[str]):
+        """构造一个最小 Segmented，只喂备注区块（不依赖真实文档）。"""
+        from ddr.detect import BLOCK_REMARKS, Detection, Segmented
+
+        seg = Segmented(
+            detection=Detection(
+                template_id="cn_vertical", label="测试用", confidence=1.0, unit_system="metric"
+            )
+        )
+        seg.blocks[BLOCK_REMARKS] = list(lines)
+        return seg
+
+    def test_single_clock_keeps_real_minutes(self):
+        from ddr.extract import extract_remarks
+
+        rems = extract_remarks(self._seg(["06:30 钻进至 2066.06 m，钻压 80 kN。"]))
+        assert len(rems) == 1
+        assert rems[0].time_hint == "06:30", "必须保留真实分钟，不能截断成 06:00"
+        assert rems[0].text == "钻进至 2066.06 m，钻压 80 kN。"
+        assert ":" not in rems[0].text, "正文里不得残留钟点"
+
+    def test_duplicate_clock_is_dropped(self):
+        """历史样本形态：time_hint 与正文各印一个钟点 → 只取第一个。"""
+        from ddr.extract import extract_remarks
+
+        rems = extract_remarks(self._seg(["06:00\u300006:30 钻进至 2066.06 m。"]))
+        assert len(rems) == 1
+        assert rems[0].time_hint == "06:00"
+        assert rems[0].text == "钻进至 2066.06 m。"
+        assert ":" not in rems[0].text, f"第二个钟点未被丢弃：{rems[0].text!r}"
+
+    def test_identical_duplicate_clock_is_dropped(self):
+        """新样本形态：hint 与正文钟点相同（都是 06:30）→ 同样只留一个。"""
+        from ddr.extract import extract_remarks
+
+        rems = extract_remarks(self._seg(["06:30\u300006:30 钻进至 2066.06 m。"]))
+        assert rems[0].time_hint == "06:30"
+        assert rems[0].text == "钻进至 2066.06 m。"
+
+    def test_no_clock_leaves_hint_none(self):
+        from ddr.extract import extract_remarks
+
+        rems = extract_remarks(self._seg(["继续钻进至设计中完井深。"]))
+        assert rems[0].time_hint is None
+        assert rems[0].text == "继续钻进至设计中完井深。"
+
+    def test_long_duration_text_keeps_real_duration(self):
+        """时长写在正文里时必须完整保留（不能被钟点处理误伤）。"""
+        from ddr.extract import extract_remarks
+
+        rems = extract_remarks(self._seg(["13:00 顶驱 VFD 故障，停钻 4.0 小时。"]))
+        assert rems[0].time_hint == "13:00"
+        assert "停钻 4.0 小时" in rems[0].text

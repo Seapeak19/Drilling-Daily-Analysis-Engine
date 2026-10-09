@@ -1,0 +1,43 @@
+# 依赖版本锁定（constraints）
+#
+# 用途：`pip install -e ".[all]" -c constraints.txt`
+# 本文件锁定的是**实际跑通 275 项测试与 444 项评测断言的版本组合**，
+# 目的是让 README 里"克隆下来即可复现"这句话随时间长青。
+#
+# 为什么必须有这个文件
+# ----------------
+# pyproject.toml 里的约束全是**下界**（`pandas>=2.0` 这类）。下界只声明
+# "不能低于什么"，不声明"验证过什么"。实际开发环境中 pandas 已经是 3.0.1 ——
+# **跨越了一个主版本**（2.x → 3.x）而测试仍然通过。这属于运气，不是保障：
+# 3.x 里被移除的 API 恰好没被本项目用到，但下一次就不一定。
+#
+# 维护方式
+# ----------------
+# 升级依赖时改这里并跑一遍完整回归（见 docs/格式适配指南.md 第 6 节）：
+#   pytest tests -q && ddr privacy && ddr check && ddr eval && ddr robust
+# 准确率或鲁棒性契约出现下降时，先怀疑版本变化，再怀疑代码。
+
+# ---- 运行时依赖 ----
+pdfplumber==0.11.10
+PyMuPDF==1.28.2
+pandas==3.0.1
+openpyxl==3.1.5
+
+# ---- 样本生成（optional-dependencies: sample / all）----
+reportlab==5.0.1
+
+# ---- 图表（optional-dependencies: dash / all）----
+plotly==7.1.0
+
+# ---- 测试与校验（optional-dependencies: dev / all）----
+pytest==9.1.1
+jsonschema==4.26.0
+
+# ---- 传递依赖（仅锁定会影响数值结果的那几个）----
+# numpy 参与 KPI 计算与单位换算，主版本变化可能改变浮点行为。
+numpy==2.3.5
+# pillow / lxml 影响 PDF 图像与 XML 解析路径。
+pillow==12.3.0
+lxml==6.1.3
+# Excel 写出格式。
+XlsxWriter==3.2.9

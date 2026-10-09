@@ -981,7 +981,17 @@ def extract_mud(
 
 
 # --------------------------------------------------------------------- 备注
-_REMARK_TIME_RE = re.compile(r"^\s*([01]?\d|2[0-4]):([0-5]\d)\s*(?:[-–~至]\s*([01]?\d|2[0-4]):([0-5]\d))?\s+")
+# 匹配备注行开头的钟点前缀。设计要点：
+# 1. 空白类含全角空格 \u3000 —— 渲染器用全角空格分隔标签与正文；
+# 2. 允许**连续两个钟点**（如 "06:30　06:30 钻进至…" 或 "06:00 06:30 钻进至…"）：
+#    表格式版式会在正文前再印一遍 time_hint。只取第一个、丢弃第二个，
+#    否则第二个钟点会残留在正文里，被下游的时长抽取误读成"6 小时"
+#    （这正是 events[].hours 曾被 100% 污染的直接原因）。
+_REMARK_TIME_RE = re.compile(
+    r"^\s*(?P<h1>[01]?\d|2[0-4]):(?P<m1>[0-5]\d)"
+    r"(?:[\s\u3000]+(?:[01]?\d|2[0-4]):[0-5]\d)?"   # 可选：紧跟的第二个钟点，丢弃
+    r"[\s\u3000]+"
+)
 
 
 def extract_remarks(seg: Segmented) -> list[Remark]:
@@ -994,7 +1004,7 @@ def extract_remarks(seg: Segmented) -> list[Remark]:
             continue
         m = _REMARK_TIME_RE.match(s)
         if m:
-            hint = f"{int(m.group(1)):02d}:{m.group(2)}"
+            hint = f"{int(m.group('h1')):02d}:{m.group('m1')}"
             text = s[m.end() :].strip()
         else:
             hint = None

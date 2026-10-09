@@ -352,6 +352,106 @@ def _(t, p):
     return te, ac, num_ok(te, ac, 0.05), "接单根总时长"
 
 
+# --------------------------------------------------------------------- 备注事件
+# 为什么要把 events 纳入评测
+# ----------------
+# 在加入这一组之前，`ddr eval` 的断言覆盖表头/时间/NPT/泥浆/钻头/接单根，
+# 但**完全不覆盖 events**。后果是：events[].hours 曾被一个正则缺陷
+# 100% 污染（把备注开头的钟点 "06:30" 当成 6 小时），而评测仍然是 100% ——
+# 字段没有断言，错了也没人知道。
+#
+# 这一组的期望值**从 ground truth 的备注原文独立复算**（见 _truth_duration_hours），
+# 不复用 llm.py 的抽取函数 —— 否则就是拿实现验证实现，等于没测。
+
+# 独立复算备注里的"明确时长"。刻意不 import llm.py：
+# 期望值必须来自与实现无关的路径，才可能发现实现的错误。
+_TRUTH_DUR_MIN_RE = re.compile(r"耗时\s*(?P<n>\d+(?:\.\d+)?)\s*分钟")
+_TRUTH_DUR_HOUR_RE = re.compile(r"(?<![\d.])(?P<n>\d+(?:\.\d+)?)\s*小时")
+
+
+def _truth_duration_hours(text: str) -> float | None:
+    """从备注原文独立推出"这条备注有没有明确时长"。
+
+    只认两种最常见的显式写法（"耗时 N 分钟" / "N 小时"）。
+    没有明确时长的备注返回 None —— 此时 hours 必须为 None，
+    这正是当初被污染的那一类。
+    """
+    if not text:
+        return None
+    m = _TRUTH_DUR_MIN_RE.search(text)
+    if m:
+        return round(float(m.group("n")) / 60.0, 3)
+    m = _TRUTH_DUR_HOUR_RE.search(text)
+    if m:
+        return round(float(m.group("n")), 2)
+    return None
+
+
+@_add("event_count", "备注事件")
+def _(t, p):
+    rems = _g(t, p, "remarks")[0] or []
+    evs = p.get("events") or []
+    return len(rems), len(evs), len(rems) == len(evs), "备注→事件条数（每条备注应产出一个事件）"
+
+
+@_add("event_hours_total", "备注事件")
+def _(t, p):
+    """所有事件的总时长。防止"个别事件时长错"被平均掉。"""
+    rems = _g(t, p, "remarks")[0] or []
+    te = round(sum(h for h in (_truth_duration_hours(r.get("text", "")) for r in rems) if h), 2)
+    ac = round(sum(float(e.get("hours") or 0) for e in (p.get("events") or [])), 2)
+    return te, ac, num_ok(te, ac, 0.05), "事件时长合计"
+
+
+@_add("event_hours_none_ratio", "备注事件")
+def _(t, p):
+    """**没有明确时长的备注，其事件 hours 必须为 None**。
+
+    这一条是专门为"钟点被误判为时长"那类缺陷设的：
+    一旦备注开头的钟点被当成小时，这里会立刻从 100 掉下来。
+    用"无时长备注的条数"作断言值，任何一条被误判都会暴露。
+    """
+    rems = _g(t, p, "remarks")[0] or []
+    evs = p.get("events") or []
+    expected_none = sum(1 for r in rems if _truth_duration_hours(r.get("text", "")) is None)
+    actual_none = sum(1 for e in evs if e.get("hours") is None)
+    return expected_none, actual_none, expected_none == actual_none, "无明确时长的备注条数"
+
+
+@_add("event_duration_exact", "备注事件")
+def _(t, p):
+    """逐条核对：有时长的备注，其事件时长必须与独立复算一致。
+
+    这是最严的一条 —— 它锁定"4.0 小时"这类**真正的时长**不被钟点遮蔽
+    （历史缺陷里 "13:00 停钻 4.0 小时" 会取到 13.0 而不是 4.0）。
+    返回不一致的条数，期望 0。
+    """
+    rems = _g(t, p, "remarks")[0] or []
+    evs = p.get("events") or []
+    bad = 0
+    for rem, ev in zip(rems, evs):
+        want = _truth_duration_hours(rem.get("text", ""))
+        if want is None:
+            continue
+        got = ev.get("hours")
+        if got is None or abs(float(got) - want) > 0.02:
+            bad += 1
+    return 0, bad, bad == 0, "时长与备注不一致的事件条数"
+
+
+@_add("event_evidence_verified", "备注事件")
+def _(t, p):
+    """凡带时长的证据片段，必须能在备注原文里定位（防幻觉护栏是否生效）。
+
+    期望：带 hours 的事件中，verified=True 的占比 100%；
+    即不存在"有数值但原文找不到依据"的事件。
+    """
+    evs = p.get("events") or []
+    with_hours = [e for e in evs if e.get("hours") is not None]
+    bad = sum(1 for e in with_hours if not e.get("verified"))
+    return 0, bad, bad == 0, f"带时长的 {len(with_hours)} 个事件中无法定位证据的条数"
+
+
 def evaluate_sample(
     pdf_or_xlsx: Path,
     truth_path: Path,
@@ -476,6 +576,72 @@ def evaluate_dataset(data_dir: str | Path) -> Report:
 
 
 # --------------------------------------------------------------------- 报告输出
+def _fingerprint() -> dict[str, str]:
+    """采集报告的"数据指纹"：这份报告对应哪个版本的代码、哪个版本的解释器。
+
+    为什么必须有：报告里的"100.00%"是一个**结论**，结论必须可追溯到出具它的
+    代码版本。没有指纹时，仓库里躺着的 evaluation_report.md 无法回答
+    "这是改完哪个提交之后跑的"，于是准确率数字随时间失去意义 ——
+    后来者只能盲目重跑，或者更糟：相信一个过期数字。
+    """
+    import platform
+    import subprocess
+    from datetime import datetime
+
+    fp: dict[str, str] = {
+        "生成时间": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "Python": platform.python_version(),
+    }
+
+    here = Path(__file__).resolve().parent
+
+    def _git(*argv: str, cwd: Path | None = None) -> str | None:
+        """跑一条 git 命令并返回 stdout；任何异常都退回 None。
+
+        指纹是**辅助信息**：拿不到 git（未安装 / 不在仓库 / 子进程被限制）
+        绝不能拖垮评测本身 —— 报告可以少一行元数据，但不能出不来。
+        """
+        try:
+            cp = subprocess.run(
+                # -c core.quotepath=false：让 git 直接输出非 ASCII 路径，
+                # 而不是 \344\270\255 这种八进制转义，便于人读。
+                ["git", "-c", "core.quotepath=false", *argv],
+                cwd=cwd or here,
+                capture_output=True,
+                # 必须显式指定 utf-8。Windows 上 text=True 默认用系统 ANSI 代码页
+                # （简体中文环境是 GBK），遇到仓库路径含中文时读取线程会抛
+                # UnicodeDecodeError，stdout 变成 None，指纹就静默退化成"未知"
+                # —— 这是一个真实踩过的坑（本仓库路径本身就含中文）。
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=10,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+        if cp.returncode != 0 or cp.stdout is None:
+            return None
+        return cp.stdout
+
+    # 注意 --show-toplevel：status 必须在**仓库根**跑。
+    # 否则从 src/ddr/ 子目录跑时，porcelain 只输出该子目录下的变化，
+    # 仓库其它地方有未提交改动也会被判成"干净" —— 那正好掩盖了
+    # "这份报告的来源不可追溯"这个本该提示的情况。
+    root = _git("rev-parse", "--show-toplevel")
+    repo_root = Path(root.strip()) if root and root.strip() else here
+
+    head = _git("rev-parse", "--short", "HEAD")
+    fp["提交"] = head.strip() if head else "不可用（未安装 git 或不在仓库中）"
+
+    st = _git("status", "--porcelain", cwd=repo_root)
+    if st is None:
+        fp["工作区"] = "未知（无法读取 git 状态）"
+    else:
+        # 脏工作区跑出来的数字对不上任何提交，必须显式标出来
+        fp["工作区"] = "干净" if not st.strip() else "有未提交改动（本次结果不对应任何提交）"
+    return fp
+
+
 def render_markdown(rep: Report, *, title: str = "解析引擎准确率报告") -> str:
     stats = rep.group_stats()
     overall = rep.overall()
@@ -509,6 +675,26 @@ def render_markdown(rep: Report, *, title: str = "解析引擎准确率报告") 
     if rep.missing:
         lines.append(">")
         lines.append(f"> ⚠ manifest 中有 {len(rep.missing)} 条登记项的样本文件缺失，已跳过。")
+    lines.append("")
+
+    # ---- 可追溯性：把"这个数字是哪来的"写在数字旁边
+    fp = _fingerprint()
+    lines.append("## 〇、数据指纹（本报告的适用范围）")
+    lines.append("")
+    lines.append("| 项 | 值 |")
+    lines.append("|---|---|")
+    for k, v in fp.items():
+        lines.append(f"| {k} | `{v}` |")
+    lines.append(f"| 评测样本 / 断言数 | {len(rep.samples)} 份 / {overall['total']} 项 |")
+    lines.append(f"| 字段组数 | {len(stats)} 组 |")
+    lines.append("")
+    lines.append(
+        "> 复现本报告：`ddr eval --data data/samples`（同一提交 + 同一数据集 ⇒ 同一结果）。"
+    )
+    lines.append(
+        "> **注意适用范围**：以上准确率是在「样本由本仓库模板渲染器生成」的封闭评测集上取得的，"
+        "说明抽取逻辑与数据模型自洽，**不等于**在任意真实日报上的准确率。"
+    )
     lines.append("")
 
     lines.append("## 一、分字段组准确率")

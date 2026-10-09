@@ -32,13 +32,15 @@
 不需要先自己造数据：
 
 ```bash
-# 1. 环境（Python 3.10+）
-pip install -e ".[all]"
+# 1. 环境（Python 3.10+；要完全复现锁定版本就带上 -c constraints.txt）
+pip install -e ".[all]" -c constraints.txt
 
 # 2. 直接跑评测与鲁棒性测试（用仓库内的样本）
+python -m ddr.cli privacy --data data/samples   # 私有数据闸门（应为 0）
 python -m ddr.cli eval  --data data/samples
 python -m ddr.cli robust
 python -m ddr.cli stats --data data/samples     # 看这批样本覆盖了什么
+python -m ddr.cli check --data data/samples/dataset.json
 pytest tests -q
 
 # 3. 解析一份日报 → 标准化 JSON + 时效分解图
@@ -53,6 +55,15 @@ python -m ddr.render --out data/samples
 ```
 
 安装为包之后可以直接用 `ddr` 命令：`ddr parse ...`、`ddr stats ...`、`ddr eval ...`。
+
+> **回归检查清单**（改任何代码后跑这五条，CI 会自动执行同样的内容）：
+> ```bash
+> ddr privacy --data data/samples   # 闸门：唯一"一旦失败就无法挽回"的检查
+> pytest tests -q                   # 单元 / 端到端 / 错误路径 / 黄金样本
+> ddr check  --data data/samples/dataset.json
+> ddr eval   --data data/samples --out /tmp/ev.md      # 准确率不得下降
+> ddr robust --out /tmp/rb.md                          # 鲁棒性契约不得回归
+> ```
 
 ### 仓库里的样本是什么
 
@@ -159,28 +170,39 @@ python -m ddr.render --out data/samples
 │   ├── units.py        # 单位换算（长度/力/密度/钻速/压力/排量/体积）
 │   ├── normalize.py    # 单位判定优先级 + 时长/钟点解析
 │   ├── reader.py       # PDF/Excel 读取，统一成 Page/表格/文本行
-│   ├── detect.py       # 模板识别 + 区块切分
+│   ├── detect.py       # 模板识别 + IADC 六段式区块切分
 │   ├── extract.py      # 表头/时间/钻头/泥浆/备注抽取（模板声明式）
-│   ├── llm.py          # LLM 抽取后端 + 防幻觉护栏
+│   ├── llm.py          # Remarks → 事件（确定性后端 + LLM 后端 + 防幻觉护栏）
 │   ├── validate.py     # 24h 加总、钟点连续性、数值合理性
 │   ├── pipeline.py     # 串联全流程 + 多日接续
 │   ├── chart.py        # 时效分解图 + CSV 导出
+│   ├── fonts.py        # 图表中文字体解析
 │   ├── cli.py          # 命令行入口
+│   ├── privacy.py      # 私有数据闸门（阻止真实日报入库）
 │   ├── simulate.py     # 合成日报生成（含 ground truth）
 │   ├── render.py       # 渲染成 3 种真实版式 PDF/Excel
 │   ├── datacheck.py    # 数据集自检（标尺必须与日报内容一致）
-│   ├── evaluate.py     # 分字段准确率评测
+│   ├── stats.py        # 数据集特征统计（覆盖/合规率/字段可用率）
+│   ├── evaluate.py     # 分字段准确率评测（含数据指纹）
 │   └── robustness.py   # 畸形日报行为契约测试
 ├── skill/ddr-parse/    # Skill 壳（对话式入口）
-├── data/samples/       # 已入库：21 份样本 + ground truth + 两份报告
-│   ├── samples/        #   15 份 PDF + 6 份 XLSX（三种模板）
-│   ├── ground_truth/   #   21 份 .truth.json（答案）
-│   ├── manifest.json   #   样本索引（评测与 stats 都读它）
-│   ├── dataset.json    #   模拟器原始输出（含 ILT 接单根明细）
-│   ├── evaluation_report.md
-│   └── robustness_report.md
-├── docs/格式适配指南.md
-└── tests/              # 231 项单元、端到端与错误路径测试
+├── .github/workflows/  # CI：把"回归检查清单"变成机器的责任
+├── constraints.txt     # 依赖版本锁定（验证过的版本组合）
+├── data/
+│   ├── real/           # ⚠ 真实日报落点，已在 .gitignore 中（不入库）
+│   └── samples/        # 已入库：21 份合成样本 + ground truth + 两份报告
+│       ├── samples/    #   15 份 PDF + 6 份 XLSX（三种模板）
+│       ├── ground_truth/   # 21 份 .truth.json（答案）
+│       ├── manifest.json   # 样本索引（评测、stats、隐私闸门都读它）
+│       ├── dataset.json    # 模拟器原始输出（含 ILT 接单根明细）
+│       ├── evaluation_report.md
+│       └── robustness_report.md
+├── docs/
+│   ├── 格式适配指南.md
+│   └── 进度评估报告.md
+└── tests/              # 单元、端到端、错误路径、黄金样本、隐私闸门测试
+    ├── test_golden_sample.py   # ⭐ 打破"渲染-解析"闭环自洽
+    └── test_privacy.py         # 私有数据闸门的正反双向锁定
 ```
 
 ## 常用命令一览
@@ -192,9 +214,13 @@ python -m ddr.render --out data/samples
 | `ddr batch <目录> --out out/parsed` | 批量解析（跨日报接续井深） |
 | `ddr stats --data data/samples` | 数据集特征统计（覆盖范围、合规率、字段可用率） |
 | `ddr check --data data/samples/dataset.json` | 校验 ground truth 与日报内容是否一致 |
-| `ddr eval --data data/samples` | 跑评测出分字段准确率报告 |
+| `ddr eval --data data/samples` | 跑评测出分字段准确率报告（含数据指纹） |
 | `ddr robust` | 跑畸形日报行为契约测试 |
+| `ddr privacy --data data/samples` | **私有数据闸门**：检查样本是否含未脱敏的真实信息 |
 | `ddr info` | 打印支持的模板与操作码字典 |
+
+> `eval` / `robust` 的 `--out` 默认写回 `data/samples/*.md`（已入库文件）。
+> 在 CI 或只想核对数字时，请显式指定 `--out` 到临时路径，避免改动仓库文件。
 
 ---
 
@@ -205,6 +231,20 @@ python -m ddr.render --out data/samples
 里的语义判断（事件类型、归因归类），且输出的每个数值都必须能在原文中逐字
 定位（`evidence_span` 校验），定位不到就丢弃该数值。`tests/test_llm_guards.py`
 用"故意胡编数值的假模型"验证了这道护栏确实生效。
+
+**备注里的钟点只写一次**（`simulate.py` / `extract.py`）
+备注正文以钟点开头（"06:30 钻进至…"），`time_hint` **由正文派生**而不是另写一个
+整点标签。早期实现把钟点写了两遍（`time_hint="06:00"` + 正文 `"06:30"`），
+渲染成 `06:00　06:30 钻进至…`；第二个钟点残留在正文里，
+被时长抽取当成"6 小时"，导致 `events[].hours` 被 100% 污染。
+根治手段是**从数据源头消除冗余**，而不是在下游打补丁。
+
+**时长抽取要求显式单位**（`llm.py`）
+"06:30" 里的 `06` 不是 6 小时，"钻压 80 kN" 里的 `80` 不是 80 小时。
+因此只有两种写法算时长：① 数值 + 显式时长单位；② 时长语境词（耗时/停钻/堵漏…）
++ 数值 + 单位。其余一律 `None`——**宁可漏报，不可错报**。
+配套的 `_verify_span` 还要求证据片段必须自带单位，
+否则裸串 `"06"` 会因是 `"06:30"` 的子串而"验证通过"，护栏反而变成错误的背书。
 
 **为什么按内容找表、不按表格序号**
 真实日报里时间分解跨页会被切成两个表格，钻头记录可能整块缺失，序号会漂移。
@@ -223,6 +263,13 @@ python -m ddr.render --out data/samples
 但**合规判定以日报原文为准**，补记不算"改对"。这是把"日报本身有问题"
 如实传递给工程师，而不是替它掩盖。
 
+**黄金样本打破"渲染-解析"闭环**（`tests/test_golden_sample.py`）
+主评测集的 ground truth 与日报 PDF 同源于 `simulate.py`，所以 100% 只能说明
+"解析器能从自己这套模板里把值读回来"。黄金样本用**手工写死**的期望值
+（不经模拟器、不经任何代码计算）走一遍 渲染 → 解析，
+并且直接断言渲染出的 PDF 文本层里确实印着那些值——这才证明了
+"解析器读到的就是日报上印着的"。
+
 ---
 
 ## 成果与局限（请一并阅读）
@@ -232,11 +279,17 @@ python -m ddr.render --out data/samples
 | 验收项 | 结果 |
 |---|---|
 | M0：单种格式解析成功，关键字段准确率 ≥ 90% | ✅ 3 种格式全部支持 |
-| M1：3 种格式 + 20 份日报评测集 + 分字段准确率报告 | ✅ 21 份样本 / 444 项字段断言 |
-| 封闭评测集字段准确率 | 100%（表头、时间分解、NPT、泥浆、钻头、ILT 六组全部 100%） |
+| M1：3 种格式 + 20 份日报评测集 + 分字段准确率报告 | ✅ 21 份样本 / **549 项**字段断言 |
+| 封闭评测集字段准确率 | 100%（表头、时间分解、NPT、泥浆、钻头、ILT、**备注事件** 七组全部 100%） |
 | 畸形日报行为契约 | 7 个用例 / 26 条断言全部通过 |
-| 自动化测试 | 231 项通过（含 19 项错误路径契约） |
+| 自动化测试 | **全部通过**，含错误路径契约、黄金样本、隐私闸门三组专项 |
 | 数据集自检 | 21 份日报的 ground truth 与日报内容零不一致 |
+| 私有数据闸门 | 合成集零误报；注入真实主体名/井名/`synthetic:false` 均被拦下 |
+| CI | push / PR 自动跑闸门 + 测试 + 自检 + 评测 + 鲁棒性，并校验工作区未被改动 |
+
+> 精确的测试项数会随提交变化，请以 `pytest tests -q` 与
+> `data/samples/evaluation_report.md` 的**数据指纹**为准（报告里记录了
+> 生成时间、commit、Python 版本与断言总数）。
 
 复现命令与报告：`data/samples/evaluation_report.md`、`data/samples/robustness_report.md`。
 
@@ -250,18 +303,41 @@ python -m ddr.render --out data/samples
    静默降级会产出看似正常、实则错误的 JSON，比直接失败危险得多。
 3. **只有 3 种格式**。计划书要求 M1 支持 3 种，已达成；真实场景的格式数量远多于此。
 4. **分析层只到第一层**。时效分解指标已可用；NPT 归因帕累托、ILT 接单根耗时分布、
-   平点定位、邻井对标属于计划书阶段 2，本阶段只在数据模型上预留了字段
-   （`npt_category`、`npt_responsibility`、`ilt_action`）。
-5. **技能覆盖不到的两件事**：获取真实日报、找现场工程师做顾问——
+   平点定位、邻井对标属于计划书阶段 2。
+5. **`npt_responsibility`（责任归属）尚未实现**。数据模型、JSON Schema、图表与
+   渲染器都引用了该字段，模拟器也生成了 21 条非空值，但**抽取器从未读取它**
+   （`extract.py` 里硬编码为 `None`），评测也未覆盖。因此当前解析结果里
+   该字段恒为 `null`。这是一个**已知未实现项**，不要当成"日报里没写"。
+6. **技能覆盖不到的两件事**：获取真实日报、找现场工程师做顾问——
    这两项仍是项目能否继续成立的关键前置（计划书 7.3 与 8.2）。
+
+---
+
+## 数据安全：真实日报不得入库
+
+本仓库绑定了公开 GitHub 远端。真实日报一旦 `git add` 并推送，
+井名/作业者/承包商就**永久留在 Git 历史里**，事后清理需要重写历史并强推，
+协作场景下几乎无法彻底清除。
+
+因此：
+
+1. **真实（未脱敏）日报一律放 `data/real/`**，该目录已在 `.gitignore` 中；
+   另有 `data/raw/`、`data/inbox/`、`*.real.pdf`、`*.未脱敏.*` 一并兜底。
+2. **提交前跑 `ddr privacy --data data/samples`**，退出码非 0 即禁止提交。
+   它按"合成基线白名单 + 机构后缀形态"双向判定：清单之外的主体名/井名一律报错。
+3. **自动检查只能降低概率，不能替代人的判断**——脱敏后仍需人工复核闸门输出。
+
+CI（`.github/workflows/ci.yml`）把闸门放在**第一步**执行：它是唯一
+"一旦发生就无法挽回"的检查项，所以宁可让它最先拦住整条流水线。
 
 ---
 
 ## 文档
 
 - [格式适配指南](docs/格式适配指南.md) —— 如何支持一种新的日报格式（改配置即可）
+- [进度评估报告](docs/进度评估报告.md) —— 现状盘点、缺陷分析与风险清单
 - [Skill 说明](skill/ddr-parse/SKILL.md) —— 对话式用法
-- [评测报告](data/samples/evaluation_report.md) —— 分字段准确率与未通过项明细
+- [评测报告](data/samples/evaluation_report.md) —— 分字段准确率、数据指纹与未通过项明细
 - [鲁棒性报告](data/samples/robustness_report.md) —— 畸形日报的行为契约
 
 ## 引用与标准依据

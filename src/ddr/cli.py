@@ -253,6 +253,42 @@ def cmd_stats(args) -> int:
     return 0
 
 
+def cmd_privacy(args) -> int:
+    """私有数据闸门：阻止真实日报被误提交进版本库。
+
+    退出码 1 表示发现必须处理的问题 —— CI 里据此阻断合并。
+    """
+    from .privacy import render_text, scan_dataset
+
+    res = scan_dataset(args.data)
+    print(render_text(res, args.data))
+    if args.json:
+        print()
+        print(
+            json.dumps(
+                {
+                    "data_dir": str(args.data),
+                    "scanned_items": res.scanned_items,
+                    "scanned_days": res.scanned_days,
+                    "allowlist_size": res.allowlist_size,
+                    "ok": res.ok,
+                    "findings": [
+                        {
+                            "severity": f.severity,
+                            "location": f.location,
+                            "message": f.message,
+                            "evidence": f.evidence,
+                        }
+                        for f in res.findings
+                    ],
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+    return 0 if res.ok else 1
+
+
 def cmd_info(args) -> int:
     cm = load_code_map()
     print(f"ddr-parser {__version__}")
@@ -328,6 +364,11 @@ def build_parser():
     p.add_argument("--json", action="store_true", help="输出 JSON 而非文本")
     p.set_defaults(func=cmd_stats)
 
+    p = sub.add_parser("privacy", help="私有数据闸门：检查样本是否含未脱敏的真实信息")
+    p.add_argument("--data", default="data/samples")
+    p.add_argument("--json", action="store_true", help="输出 JSON 而非文本")
+    p.set_defaults(func=cmd_privacy)
+
     p = sub.add_parser("info", help="打印支持的模板与操作码字典")
     p.set_defaults(func=cmd_info)
     return ap
@@ -339,7 +380,7 @@ def main(argv: list[str] | None = None) -> int:
     for attr, default in (
         ("out", None), ("csv", None), ("chart", None), ("summary", False),
         ("template", None), ("no_validate", False), ("strict", False), ("quiet", False),
-        ("no_json", False),
+        ("no_json", False), ("json", False),
     ):
         if not hasattr(args, attr):
             setattr(args, attr, default)

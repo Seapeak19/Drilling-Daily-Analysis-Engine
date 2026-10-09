@@ -1,0 +1,84 @@
+name: CI
+
+# 为什么需要这个工作流
+# ----------------
+# `docs/格式适配指南.md` 第 6 节已经写明"改完任何一种格式，跑完这四条再提交"，
+# 但在本文件存在之前，这四条**全靠人工记忆**：
+#   1. pytest tests                 2. ddr check
+#   3. ddr eval（准确率不得下降）    4. ddr robust（鲁棒性不得回归）
+# 任何一条被跳过，回归就会静默进入 main 并推送到 GitHub。
+# 这个工作流把那四行清单变成机器的责任。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.10 是 pyproject 声明的下界；3.12 是当前开发版本。
+        # 两端都测，避免用到下界不支持的新语法。
+        python-version: ["3.10", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          # 若存在 constraints.txt 则用它锁定版本，保证"克隆即可复现"成立
+          if [ -f constraints.txt ]; then
+            pip install -e ".[all]" -c constraints.txt
+          else
+            pip install -e ".[all]"
+          fi
+
+      # ------------------------------------------------------------------
+      # 私有数据闸门：放在最前面。
+      # 这是唯一"一旦失败就无法挽回"的检查项 —— 真实日报推送到公开仓库后，
+      # 清理需要重写 Git 历史。所以宁可让它在最先跑并直接拦住整个流水线。
+      # ------------------------------------------------------------------
+      - name: 私有数据闸门（真实日报不得入库）
+        run: ddr privacy --data data/samples
+
+      - name: 单元 / 端到端 / 错误路径测试
+        run: pytest tests -q
+
+      - name: 数据集 ground truth 自检
+        run: ddr check --data data/samples/dataset.json
+
+      # 注意：--out 指向临时目录。
+      # 默认的 --out 会覆盖 data/samples/*.md 这两个**已入库**的报告文件——
+      # CI 里那属于"检查动作改动仓库文件"，会让工作区变脏并掩盖真实差异。
+      - name: 分字段准确率评测
+        run: |
+          ddr eval --data data/samples --out /tmp/ci_evaluation_report.md
+          echo "--- 报告摘要 ---"
+          head -5 /tmp/ci_evaluation_report.md
+
+      - name: 畸形日报鲁棒性契约
+        run: |
+          ddr robust --out /tmp/ci_robustness_report.md
+          echo "--- 报告摘要 ---"
+          head -8 /tmp/ci_robustness_report.md
+
+      # 工作区必须保持干净：若上面的检查改动了已入库文件，说明有副作用
+      - name: 确认检查过程未改动仓库文件
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::检查过程改动了仓库文件，请排查副作用："
+            git status --porcelain
+            git diff
+            exit 1
+          fi
+          echo "工作区干净。"

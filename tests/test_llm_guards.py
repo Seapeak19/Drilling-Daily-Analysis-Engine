@@ -22,7 +22,8 @@ class TestDeterministicExtractor:
         e = ex.extract(R(1, "顶驱 VFD 故障，抢修 4 小时"))
         assert e.event_type == "equipment_failure"
         assert e.hours == 4.0
-        assert e.evidence_span == "4 小时"
+        # 证据片段含语境词"抢修"：这比只有"4 小时"更能证明"这个数字是时长"
+        assert e.evidence_span == "抢修 4 小时"
         assert e.verified is True
         assert e.npt_category == "equipment"
 
@@ -45,6 +46,49 @@ class TestDeterministicExtractor:
         """'钻进至 2350 m' 里的 2350 m 不是时长。"""
         e = DeterministicExtractor().extract(R(1, "钻进至 2350 m"))
         assert e.hours is None
+
+    # ---------------------------------------------------------------- 钟点回归
+    # 以下四条锁定的是一处曾经 100% 污染 samples 集的缺陷：
+    # 备注以钟点开头时，时长抽取把 "06:30" 的 "06" 当成 6 小时，
+    # 并且裸串 "06" 能在原文里找到 → verified=True，护栏反而为错误背书。
+    # 用例刻意采用**真实日报句式**（钟点 + 动作 + 伴随参数数字），
+    # 而不是过去那种"井漏，堵漏 2.5 小时"的干净短句 —— 后者恰好绕开了触发条件。
+
+    def test_clock_prefix_is_not_a_duration(self):
+        """钟点前缀不得被当时长；伴随的井深/钻压也不是时长。"""
+        e = DeterministicExtractor().extract(
+            R(1, "钻进至 2066.06 m，钻压 80 kN，转速 166 rpm，排量 36 L/s，钻时 15.8 m/h。",
+              hint="06:30")
+        )
+        assert e.hours is None, f"钟点/井深被误判为时长：{e.hours}"
+        assert e.evidence_span is None
+        assert e.verified is False
+
+    def test_clock_prefix_does_not_shadow_real_duration(self):
+        """钟点在前时，真正的时长仍必须被抽到（且是 4.0 h 而不是 13）。"""
+        e = DeterministicExtractor().extract(
+            R(1, "顶驱 VFD 故障，停钻 4.0 小时。", hint="13:00")
+        )
+        assert e.hours == 4.0, f"应为 4.0 h，实际 {e.hours}"
+        assert e.verified is True
+
+    def test_minutes_duration_with_clock_prefix(self):
+        """'09:15 接单根，耗时 12 分钟' → 0.2 h（12 分钟），不是 9 h。"""
+        e = DeterministicExtractor().extract(R(1, "接单根，耗时 12 分钟。", hint="09:15"))
+        assert e.hours == 0.2, f"应为 0.2 h，实际 {e.hours}"
+
+    def test_bare_number_is_not_a_duration(self):
+        """没有时长单位的裸数字一律不当时长 —— 宁可漏报，不可错报。"""
+        e = DeterministicExtractor().extract(R(1, "等待钻头到货，配件在途 6 件"))
+        assert e.hours is None, f"裸数字被当成时长：{e.hours}"
+
+    def test_evidence_span_must_carry_unit(self):
+        """护栏强化：证据片段必须自带时长单位，裸数字不得通过验证。"""
+        from ddr.llm import _verify_span
+
+        assert _verify_span("06:30 停钻 4.0 小时", "06") is False
+        assert _verify_span("06:30 停钻 4.0 小时", "80") is False
+        assert _verify_span("06:30 停钻 4.0 小时", "停钻 4.0 小时") is True
 
 
 class TestLLMGuardrails:

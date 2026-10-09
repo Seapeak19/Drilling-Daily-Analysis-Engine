@@ -50,9 +50,35 @@ CATEGORY_BY_EVENT = {
     "instruction": "logistics",
 }
 
-_NUM_UNIT_RE = re.compile(
-    r"(?P<num>\d+(?:\.\d+)?)\s*(?P<unit>小时|h|hr|hrs|分钟|min|minutes|天|day|days|m|米|ft)?",
+# 备注里可能出现的钟点（HH:MM）。抽时长前必须先剔除：
+# "06:30 钻进至 2066.06 m" 里的 06 不是"6 小时"，它是时刻。
+_CLOCK_RE = re.compile(r"\b(?:[01]?\d|2[0-4]):[0-5]\d\b")
+
+# 时长语境词：只有"耗时 12 分钟"这类带语境的裸数字才按分钟解释。
+_DURATION_WORDS = r"(?:耗时|用时|历时|停钻|停工|停产|停顿|处理|堵漏|抢修|等待)"
+
+# 时长抽取。单位**不再可选** —— 这是本模块最严重的一处历史缺陷：
+# 单位可选时，"06:30" 里的 "06" 会被当成 6 小时，"钻压 80 kN" 里的 "80"
+# 会被当成 80 小时。当时 135 条备注的 hours 全部被污染，
+# 而 `_verify_span` 还会为这些错误结果打上 verified=True
+# （裸串 "06" 必然出现在 "06:30" 里），护栏反而成了错误的背书。
+#
+# 现在只有两种写法算时长：
+#   ① 数值 + 显式时长单位：2.5 小时 / 12 分钟 / 0.5 天
+#   ② 时长语境词 + 数值 + 单位：耗时 12 分钟 / 停钻 4 小时 / 堵漏 2.5 小时
+#   ③ 其余一律返回 None —— 宁可漏报，不可错报。
+_DURATION_RE = re.compile(
+    r"(?P<num>\d+(?:\.\d+)?)\s*"
+    r"(?P<unit>小时|分钟|天|hrs|hr|min|minutes|days|day|h(?![a-z/]))"
+    r"|"
+    r"(?:" + _DURATION_WORDS + r")\s*(?P<num2>\d+(?:\.\d+)?)\s*"
+    r"(?P<unit2>小时|分钟|天|hrs|hr|min|minutes|days|day|h(?![a-z/]))",
     re.IGNORECASE,
+)
+
+# 证据片段可信性：末尾必须落到时长单位上
+_EVIDENCE_UNIT_RE = re.compile(
+    r"(?:小时|分钟|天|hrs|hr|min|minutes|days|day|h)$", re.IGNORECASE
 )
 
 
@@ -80,29 +106,58 @@ def _match_event_type(text: str) -> str:
     return "info"
 
 
+def _to_hours(num: float, unit: str) -> float | None:
+    u = (unit or "").lower()
+    if u in ("小时", "h", "hr", "hrs"):
+        return round(num, 2)
+    if u in ("分钟", "min", "minutes"):
+        return round(num / 60.0, 3)
+    if u in ("天", "day", "days"):
+        return round(num * 24.0, 2)
+    return None
+
+
 def _extract_hours(text: str) -> tuple[float | None, str | None]:
-    """从文本里抽取时长，并返回**逐字证据片段**用于交叉校验。"""
-    m = _NUM_UNIT_RE.search(text)
+    """从文本里抽取**时长**，并返回逐字证据片段用于交叉校验。
+
+    先剔除钟点再匹配：日报备注常以 "06:30" 开头，若不剔除，
+    时长抽取会把时刻的"小时部分"当成时长（历史缺陷，见上方注释）。
+    """
+    if not text:
+        return None, None
+    cleaned = _CLOCK_RE.sub(" ", text)
+    m = _DURATION_RE.search(cleaned)
     if not m:
         return None, None
-    num = float(m.group("num"))
-    unit = (m.group("unit") or "").lower()
-    span = m.group(0)
-    if unit in ("小时", "h", "hr", "hrs", ""):
-        return round(num, 2), span
-    if unit in ("分钟", "min", "minutes"):
-        return round(num / 60.0, 3), span
-    if unit in ("天", "day", "days"):
-        return round(num * 24.0, 2), span
-    # 单位是长度（m/ft）时不是时长，返回 None
-    return None, None
+    # 两个分支各有一组命名组，取实际命中的那组
+    num_s = m.group("num") or m.group("num2")
+    unit = m.group("unit") or m.group("unit2") or ""
+    if not num_s:
+        return None, None
+    hours = _to_hours(float(num_s), unit)
+    if hours is None:
+        return None, None
+    return hours, m.group(0)
 
 
 def _verify_span(text: str, span: str | None) -> bool:
-    """数值必须在原文里逐字出现，否则一律视为不可信。"""
+    """数值必须在原文里逐字出现，否则一律视为不可信。
+
+    强化点：证据片段**必须自带时长单位**。
+    否则裸数字（如 "06"）会因是 "06:30" 的子串而"验证通过"，
+    护栏就变成了错误的背书 —— 这正是历史上 hours 被污染却显示 verified 的原因。
+
+    注意比较对象：证据片段是在**剔除钟点后**的文本上抽出来的，
+    所以这里也要在剔除钟点后的文本里找 —— 直接拿原文比对会因为
+    "06:30" 被抹成空格而错杀合法证据（"12 分钟" 这类）。
+    """
     if not span:
         return False
-    return span in text
+    span = span.strip()
+    if not _EVIDENCE_UNIT_RE.search(span):
+        return False
+    cleaned = _CLOCK_RE.sub(" ", text or "")
+    return span in cleaned
 
 
 class DeterministicExtractor:
