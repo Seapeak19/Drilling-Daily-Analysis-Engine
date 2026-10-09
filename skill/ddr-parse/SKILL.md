@@ -45,8 +45,8 @@ python -m ddr.cli batch <目录> --out out/parsed
    解析器已按缺口补记，请回查原件"。
 2. **时效三类占比**——有效生产 / Flat Time / NPT 各多少小时、占比多少。
    NPT 率要与行业基准 20%–25% 对比说明（高或低都要讲）。
-3. **NPT 事件明细**——时段、时长、归因大类（设备/井下/天气/物流/安全）、
-   责任归属（承包商/作业者）。这是索赔与追责的证据链。
+3. **NPT 事件明细**——时段、时长、归因大类（设备/井下/天气/物流/安全）。
+   这是索赔与追责的证据链。
 4. **异常与不确定性**——`source.warnings` 与校验 messages 里的所有提示都要如实转达，
    不要为了让结论显得干净而省略。
 
@@ -54,7 +54,14 @@ python -m ddr.cli batch <目录> --out out/parsed
 - 不要根据日报之外的常识补全缺失字段（如"应该是 12¼ 井眼吧"）；
 - 不要把 `null` 解释成 0（`null` 表示日报里没写）；
 - 不要在单位不确定时给出换算后的数值——引擎会保留原始值并标记
-  `unit_source: "unknown_raw"`，此时应提示用户人工确认单位。
+  `unit_source: "unknown_raw"`，此时应提示用户人工确认单位；
+- **不要把 `npt_responsibility: null` 说成"日报未写责任归属"**。
+  该字段的抽取**尚未实现**，解析结果恒为 `null`（即使日报里写了）。
+  需要责任归属时，请引导用户人工查阅日报原文；
+- **不要把 `events[].hours: null` 说成"事件时长为 0"或"日报没写时长"**。
+  `null` 的准确含义是"该备注未以明确时长写法叙述时长"
+  （如"钻进至 2066.06 m，钻压 80 kN"这类只含参数、不含时长的句子）。
+  只有"耗时 12 分钟""停钻 4.0 小时"这类写法才会给出 `hours`。
 
 ## 常用命令
 
@@ -67,6 +74,11 @@ python -m ddr.cli batch <目录> --out out/parsed
 | 看支持的模板与编码 | `python -m ddr.cli info` |
 | 强制指定模板 | `python -m ddr.cli parse 文件 --template iadc_classic` |
 | 严格 Schema 校验 | `python -m ddr.cli parse 文件 --strict` |
+| 检查数据集是否含未脱敏真实信息 | `python -m ddr.cli privacy --data data/samples` |
+
+> ⚠ **不要建议用户把真实日报放进 `data/samples/`**。本仓库绑定公开 GitHub 远端，
+> 真实日报一旦提交就永久留在 Git 历史里。真实文件应放 `data/real/`
+> （已在 `.gitignore` 中），入库前必须先脱敏并通过 `ddr privacy`。
 
 ## 已知模板
 
