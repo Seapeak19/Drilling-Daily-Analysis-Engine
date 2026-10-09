@@ -82,11 +82,28 @@ jobs:
         run: python -c "from ddr.fonts import has_cjk_font; assert has_cjk_font(), 'CJK 字体未被识别'; print('CJK 字体可用')"
 
       - name: 单元 / 端到端 / 错误路径测试
+        # 之所以不用一行 `pytest tests -q`：
+        # GitHub 的 check-run annotation **不会**包含 stdout 内容，
+        # 只能看到 "Process completed with exit code 1"；而完整日志的下载
+        # 需要认证。结果就是"CI 挂了但看不到是哪个测试挂了"。
+        # 这里把失败详情用 ::error:: 工作流命令主动写成 annotation，
+        # 让人在 GitHub 页面上直接读到失败测试名与出错行。
         run: |
           echo "=== 运行环境 ==="
-          python -c "import sys, platform; print('Python', sys.version); print('平台', platform.platform())"
-          echo "=== 测试（失败时会在摘要里带出出错行）==="
-          pytest tests -q
+          python -c "import sys, platform; print('Python', sys.version.split()[0]); print('平台', platform.platform())"
+          set +e
+          pytest tests -q > /tmp/pytest.log 2>&1
+          rc=$?
+          set -e
+          tail -n 60 /tmp/pytest.log
+          if [ $rc -ne 0 ]; then
+            # 逐行转成 annotation；过滤空行，转义 :: 避免被当成工作流命令
+            grep -v '^[[:space:]]*$' /tmp/pytest.log | tail -n 45 | while IFS= read -r line; do
+              echo "::error::$(printf '%s' "$line" | sed 's/::/:/g')"
+            done
+            exit $rc
+          fi
+          echo "全部通过"
 
       - name: 数据集 ground truth 自检
         run: ddr check --data data/samples/dataset.json
