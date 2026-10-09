@@ -76,19 +76,25 @@ class FontUnavailableError(RuntimeError):
 
 
 def _ensure_cjk_font() -> None:
-    """渲染中文样本前必须确认中文字体可用。
+    """渲染中文样本前必须确认中文字体**真能渲染中文**。
 
-    找不到字体时 reportlab 会静默退回 Helvetica，产出的是**满屏方块的 PDF**：
+    找不到可用字体时 reportlab 会静默退回 Helvetica，产出的是**满屏方块的 PDF**：
     样本看起来生成了，实则不可用，还会污染评测集。因此这里显式失败。
-    （fonts.has_cjk_font 的注释早就写明"调用方应警告"，但此前没有任何地方调用它。）
+
+    注意判据是"能渲染"而非"文件存在"：某些字体（如缺少汉字字形的拉丁字体、
+    部分版本的 NotoSansCJK 集合）能被 reportlab 成功注册却把中文画成空字节，
+    文本层里读到的是 '\\x00\\x00\\x00\\x00'。那种情况下模板识别会失败，
+    最终表现为"时间分解只有 1 条"这种离根因极远的报错 —— CI 首次运行即是如此。
+    往返验证在 `fonts._validate_cjk_render` 里做。
     """
-    from .fonts import has_cjk_font
+    from .fonts import describe_candidates, has_cjk_font
 
     if not has_cjk_font():
         raise FontUnavailableError(
-            "系统中找不到可用的中文字体（已尝试 simhei / NotoSansSC / Deng / msyh / simsun 等）。"
-            "渲染中文日报样本至少需要一种。Linux 上可执行："
-            "apt-get install fonts-noto-cjk fonts-wqy-zenhei"
+            "系统中找不到可用的中文字体（需能真正渲染汉字，而不只是文件存在）。\n"
+            "已尝试的候选及各自失败原因：\n"
+            f"{describe_candidates()}\n"
+            "Linux 上可执行：apt-get install fonts-noto-cjk fonts-wqy-zenhei"
         )
 
 

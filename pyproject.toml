@@ -35,8 +35,3 @@ testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-q"
 markers = ["slow: 端到端较慢的测试（渲染 PDF 样本）"]
-# 失败时在摘要里带上出错的那一行代码。
-# 为什么需要：CI 挂在 GitHub 上，日志下载要认证；而 check-run annotation
-# 只暴露 "Process completed with exit code 1"。把失败位置提前到 stdout 摘要，
-# 才能在 annotation 里直接看到是哪个测试、哪一行挂了。
-reportchars = "fE"

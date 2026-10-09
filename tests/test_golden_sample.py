@@ -508,3 +508,78 @@ class TestCjkFontAvailable:
         regular, bold = fonts.resolve_cjk_font()
         assert regular, "本机应能找到中文字体（CI 里由 apt 安装 fonts-noto-cjk 保证）"
         assert bold, "本机应能找到粗体中文字体"
+
+
+# --------------------------------------------------------------------- 往返验证
+class TestFontRoundTripValidation:
+    """字体判据必须是"能渲染中文"，而不是"文件存在"或"注册没报错"。
+
+    ## 这条测试的由来（CI 首次运行全挂的根因）
+
+    Linux 上发生的事：字体文件存在、reportlab 注册也成功，
+    但渲染出的 PDF 里中文变成了**空字节** —— 文本层读到的是
+    `'\\x00\\x00\\x00\\x00 2066.06'`。
+
+    没有字形时 reportlab 不报错，只画空字形。于是链式静默失败：
+    日报中文全丢 → 模板识别失败 → 时间分解表找不到 →
+    解析器补记一条 `UNKNOWN 24h` → 黄金样本报"时间分解只有 1 条"。
+    **报错信息离根因极远，为此浪费了一整轮 CI。**
+
+    修复就是本模块测的 `_validate_cjk_render`：渲染探针文本再读回来确认。
+    这组测试保证那道验证真的存在且真的能区分好坏字体。
+    """
+
+    def test_real_cjk_font_passes(self):
+        """正常的中文字体必须通过往返验证。"""
+        from ddr import fonts
+
+        regular, _ = fonts.resolve_cjk_font()
+        assert regular, "本机应能找到中文字体"
+        ok, why = fonts._validate_cjk_render(regular, 0)
+        assert ok, f"{regular} 未通过往返验证：{why}"
+
+    def test_latin_only_font_is_rejected(self):
+        """只含拉丁字形的字体必须被拒绝 —— 这正是 CI 失败的形态。
+
+        判据是"中文能否读回"，所以这条测试必须能区分：
+        用只含拉丁字形的字体渲染中文 → 得到空字节 → 验证不通过。
+        """
+        from pathlib import Path
+
+        from ddr import fonts
+
+        # 找一个确定不含汉字字形的系统字体；找不到就跳过（不假装测过）
+        latin_candidates = [
+            r"C:\Windows\Fonts\arial.ttf",
+            r"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            r"/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        ]
+        latin = next((p for p in latin_candidates if Path(p).exists()), None)
+        if not latin:
+            pytest.skip("本机没有可用于对照的纯拉丁字体")
+
+        ok, why = fonts._validate_cjk_render(latin, 0)
+        assert not ok, f"{latin} 只含拉丁字形，不应通过中文往返验证"
+        assert "读回" in why or "缺" in why, f"失败原因应说明中文读不回：{why}"
+
+    def test_validation_rejects_missing_file(self):
+        """不存在的文件必须被拒绝，且不抛异常。"""
+        from ddr import fonts
+
+        ok, _why = fonts._validate_cjk_render("/nonexistent/font.ttf", 0)
+        assert ok is False
+
+    def test_describe_candidates_explains_every_option(self):
+        """报错信息必须逐个说明候选为何不可用。
+
+        为什么重要：CI 上"中文渲染失败"的表象是"时间分解只有 1 条"，
+        没有这份清单就只能再花一轮 CI 去猜。它是给人看的诊断信息。
+        """
+        from ddr import fonts
+
+        text = fonts.describe_candidates()
+        assert text.strip(), "候选说明不应为空"
+        assert "simhei" in text or "noto" in text.lower() or "wqy" in text.lower(), \
+            f"应列出实际尝试过的候选路径：{text[:120]}"
+        assert ("可用" in text) or ("不存在" in text) or ("读回" in text), \
+            "每个候选都应给出结论（可用 / 不存在 / 失败原因）"
